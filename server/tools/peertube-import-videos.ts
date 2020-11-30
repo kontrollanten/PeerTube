@@ -2,17 +2,11 @@ import { registerTSPaths } from '../helpers/register-ts-paths'
 registerTSPaths()
 
 import * as program from 'commander'
-import { join } from 'path'
-import { doRequestAndSaveToFile } from '../helpers/requests'
-import { CONSTRAINTS_FIELDS } from '../initializers/constants'
-import { getClient, getVideoCategories, login, searchVideoWithSort, uploadVideo } from '../../shared/extra-utils/index'
-import { truncate } from 'lodash'
 import * as prompt from 'prompt'
 import { accessSync, constants } from 'fs'
-import { remove } from 'fs-extra'
-import { sha256 } from '../helpers/core-utils'
 import { buildOriginallyPublishedAt, safeGetYoutubeDL } from '../helpers/youtube-dl'
-import { buildCommonVideoOptions, buildVideoAttributesFromCommander, getLogger, getServerCredentials } from './cli'
+import { buildCommonVideoOptions, getLogger, getServerCredentials, getAdminTokenOrDie } from './cli'
+import { makeGetRequest, makePostBodyRequest } from '../../shared/extra-utils/requests/requests'
 
 type UserInfo = {
   username: string
@@ -91,7 +85,7 @@ async function run (url: string, user: UserInfo) {
   }
   infoArray = infoArray.map(i => normalizeObject(i))
 
-  log.info('Will download and upload %d videos.\n', infoArray.length)
+  log.info('Will import %d videos.\n', infoArray.length)
 
   for (const info of infoArray) {
     try {
@@ -116,9 +110,12 @@ function processVideo (parameters: {
   user: { username: string, password: string }
   youtubeInfo: any
 }) {
-  const { youtubeInfo, cwd, url, user } = parameters
+  const { youtubeInfo } = parameters
+  const youtubeUrl = buildUrl(youtubeInfo)
 
   return new Promise(async res => {
+    log.info('############################################################\n')
+
     log.debug('Fetching object.', youtubeInfo)
 
     const videoInfo = await fetchObject(youtubeInfo)
@@ -139,148 +136,48 @@ function processVideo (parameters: {
       }
     }
 
-    const result = await searchVideoWithSort(url, videoInfo.title, '-match')
+    const { url: serverUrl, username, password } = await getServerCredentials(program)
+    const accessToken = await getAdminTokenOrDie(serverUrl, username, password)
 
-    log.info('############################################################\n')
+    log.info('Checking if user has already imported the video...')
+    /**
+      * Warning: This is unsafe since we will only check in the 100 latest imports.
+      * TOOD: Create an endpoint to search for a specific import by targetUrl
+      */
+    const { body: { data: importedVideos } } = await makeGetRequest({
+      url: serverUrl,
+      path: '/api/v1/users/me/videos/imports?sort=-createdAt&count=100',
+      statusCodeExpected: 200,
+      token: accessToken
+    })
 
-    if (result.body.data.find(v => v.name === videoInfo.title)) {
+    if (importedVideos.find(v => v.targetUrl === youtubeUrl)) {
       log.info('Video "%s" already exists, don\'t reupload it.\n', videoInfo.title)
       return res()
     }
 
-    const path = join(cwd, sha256(videoInfo.url) + '.mp4')
+    const { body: { videoChannels: [ videoChannel ] } } = await makeGetRequest({
+      url: serverUrl,
+      path: '/api/v1/users/me',
+      statusCodeExpected: 200,
+      token: accessToken
+    })
 
-    log.info('Downloading video "%s"...', videoInfo.title)
+    log.info('Importing video "%s to channel %s"...', videoInfo.title, videoChannel.name)
 
-    const options = [ '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best', ...command.args, '-o', path ]
-    try {
-      const youtubeDL = await safeGetYoutubeDL()
-      youtubeDL.exec(videoInfo.url, options, processOptions, async (err, output) => {
-        if (err) {
-          log.error(err)
-          return res()
-        }
+    await makePostBodyRequest({
+      url: serverUrl,
+      path: '/api/v1/videos/imports',
+      token: accessToken,
+      fields: {
+        channelId: videoChannel.id,
+        targetUrl: youtubeUrl
+      },
+      statusCodeExpected: 200
+    })
 
-        log.info(output.join('\n'))
-        await uploadVideoOnPeerTube({
-          cwd,
-          url,
-          user,
-          videoInfo: normalizeObject(videoInfo),
-          videoPath: path
-        })
-        return res()
-      })
-    } catch (err) {
-      log.error(err.message)
-      return res()
-    }
+    return res()
   })
-}
-
-async function uploadVideoOnPeerTube (parameters: {
-  videoInfo: any
-  videoPath: string
-  cwd: string
-  url: string
-  user: { username: string, password: string }
-}) {
-  const { videoInfo, videoPath, cwd, url, user } = parameters
-
-  const category = await getCategory(videoInfo.categories, url)
-  const licence = getLicence(videoInfo.license)
-  let tags = []
-  if (Array.isArray(videoInfo.tags)) {
-    tags = videoInfo.tags
-                    .filter(t => t.length < CONSTRAINTS_FIELDS.VIDEOS.TAG.max && t.length > CONSTRAINTS_FIELDS.VIDEOS.TAG.min)
-                    .map(t => t.normalize())
-                    .slice(0, 5)
-  }
-
-  let thumbnailfile
-  if (videoInfo.thumbnail) {
-    thumbnailfile = join(cwd, sha256(videoInfo.thumbnail) + '.jpg')
-
-    await doRequestAndSaveToFile({
-      method: 'GET',
-      uri: videoInfo.thumbnail
-    }, thumbnailfile)
-  }
-
-  const originallyPublishedAt = buildOriginallyPublishedAt(videoInfo)
-
-  const defaultAttributes = {
-    name: truncate(videoInfo.title, {
-      length: CONSTRAINTS_FIELDS.VIDEOS.NAME.max,
-      separator: /,? +/,
-      omission: ' […]'
-    }),
-    category,
-    licence,
-    nsfw: isNSFW(videoInfo),
-    description: videoInfo.description,
-    tags
-  }
-
-  const videoAttributes = await buildVideoAttributesFromCommander(url, program, defaultAttributes)
-
-  Object.assign(videoAttributes, {
-    originallyPublishedAt: originallyPublishedAt ? originallyPublishedAt.toISOString() : null,
-    thumbnailfile,
-    previewfile: thumbnailfile,
-    fixture: videoPath
-  })
-
-  log.info('\nUploading on PeerTube video "%s".', videoAttributes.name)
-
-  let accessToken = await getAccessTokenOrDie(url, user)
-
-  try {
-    await uploadVideo(url, accessToken, videoAttributes)
-  } catch (err) {
-    if (err.message.indexOf('401') !== -1) {
-      log.info('Got 401 Unauthorized, token may have expired, renewing token and retry.')
-
-      accessToken = await getAccessTokenOrDie(url, user)
-
-      await uploadVideo(url, accessToken, videoAttributes)
-    } else {
-      exitError(err.message)
-    }
-  }
-
-  await remove(videoPath)
-  if (thumbnailfile) await remove(thumbnailfile)
-
-  log.warn('Uploaded video "%s"!\n', videoAttributes.name)
-}
-
-/* ---------------------------------------------------------- */
-
-async function getCategory (categories: string[], url: string) {
-  if (!categories) return undefined
-
-  const categoryString = categories[0]
-
-  if (categoryString === 'News & Politics') return 11
-
-  const res = await getVideoCategories(url)
-  const categoriesServer = res.body
-
-  for (const key of Object.keys(categoriesServer)) {
-    const categoryServer = categoriesServer[key]
-    if (categoryString.toLowerCase() === categoryServer.toLowerCase()) return parseInt(key, 10)
-  }
-
-  return undefined
-}
-
-function getLicence (licence: string) {
-  if (!licence) return undefined
-
-  if (licence.includes('Creative Commons Attribution licence')) return 1
-
-  return undefined
 }
 
 function normalizeObject (obj: any) {
@@ -327,10 +224,6 @@ function buildUrl (info: any) {
   return 'https://www.youtube.com/watch?v=' + info.id
 }
 
-function isNSFW (info: any) {
-  return info.age_limit && info.age_limit >= 16
-}
-
 function normalizeTargetUrl (url: string) {
   let normalizedUrl = url.replace(/\/+$/, '')
 
@@ -359,21 +252,6 @@ async function promptPassword () {
       return res(result.password)
     })
   })
-}
-
-async function getAccessTokenOrDie (url: string, user: UserInfo) {
-  const resClient = await getClient(url)
-  const client = {
-    id: resClient.body.client_id,
-    secret: resClient.body.client_secret
-  }
-
-  try {
-    const res = await login(url, client, user)
-    return res.body.access_token
-  } catch (err) {
-    exitError('Cannot authenticate. Please check your username/password.')
-  }
 }
 
 function parseDate (dateAsStr: string): Date {
