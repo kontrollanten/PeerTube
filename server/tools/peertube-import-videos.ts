@@ -7,6 +7,7 @@ import { accessSync, constants } from 'fs'
 import { buildOriginallyPublishedAt, safeGetYoutubeDL } from '../helpers/youtube-dl'
 import { buildCommonVideoOptions, getLogger, getServerCredentials, getAdminTokenOrDie } from './cli'
 import { makeGetRequest, makePostBodyRequest } from '../../shared/extra-utils/requests/requests'
+import { VideoPrivacy } from '../../shared'
 
 type UserInfo = {
   username: string
@@ -171,6 +172,7 @@ function processVideo (parameters: {
       token: accessToken,
       fields: {
         channelId: videoChannel.id,
+        privacy: VideoPrivacy.PUBLIC,
         targetUrl: youtubeUrl
       },
       statusCodeExpected: 200
