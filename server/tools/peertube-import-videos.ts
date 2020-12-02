@@ -93,6 +93,9 @@ async function run (url: string, user: UserInfo) {
     infoArray.map(i => i.id).join(',')
   )
 
+  const { url: serverUrl, username, password } = await getServerCredentials(program)
+  const accessToken = await getAdminTokenOrDie(serverUrl, username, password)
+
   for (const info of infoArray) {
     const apiInfo = originallyPublishedAtItems.find(o => o.id === info.id)
 
@@ -102,6 +105,10 @@ async function run (url: string, user: UserInfo) {
 
     try {
       await processVideo({
+        ptCredentials: {
+          accessToken,
+          serverUrl,
+        },
         cwd: program['tmpdir'],
         originallyPublishedAt: apiInfo.snippet.publishedAt,
         url,
@@ -122,9 +129,10 @@ function processVideo (parameters: {
   originallyPublishedAt: string
   url: string
   user: { username: string, password: string }
+  ptCredentials: { accessToken: string, serverUrl: string }
   youtubeInfo: any
 }) {
-  const { originallyPublishedAt, youtubeInfo } = parameters
+  const { originallyPublishedAt, ptCredentials: { accessToken, serverUrl }, youtubeInfo } = parameters
   const youtubeUrl = buildUrl(youtubeInfo)
 
   return new Promise(async res => {
@@ -149,9 +157,6 @@ function processVideo (parameters: {
         return res()
       }
     }
-
-    const { url: serverUrl, username, password } = await getServerCredentials(program)
-    const accessToken = await getAdminTokenOrDie(serverUrl, username, password)
 
     log.info('Checking if user has already imported the video...')
     /**
