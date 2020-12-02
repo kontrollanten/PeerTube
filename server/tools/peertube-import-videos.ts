@@ -94,10 +94,16 @@ async function run (url: string, user: UserInfo) {
   )
 
   for (const info of infoArray) {
+    const apiInfo = originallyPublishedAtItems.find(o => o.id === info.id)
+
+    if (!apiInfo) {
+      console.error(`Can't find publish date for ${info.id}. Skipping. Probably the data is paginated in the YouTube API response.`)
+    }
+
     try {
       await processVideo({
         cwd: program['tmpdir'],
-        originallyPublishedAt: originallyPublishedAtItems.find(o => o.id === info.id).snippet.publishedAt,
+        originallyPublishedAt: apiInfo.snippet.publishedAt,
         url,
         user,
         youtubeInfo: info

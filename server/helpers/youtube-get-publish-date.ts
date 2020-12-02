@@ -17,6 +17,6 @@ export default async (ids) => {
 
   const idsString = ids.split(',')
 
-  return await fetch(`https://www.googleapis.com/youtube/v3/videos?id=${idsString}&part=snippet,statistics,recordingDetails&key=${apiKey}`)
+  return await fetch(`https://www.googleapis.com/youtube/v3/videos?id=${idsString}&part=snippet&key=${apiKey}&maxResults=50`)
     .then(res => res.json())
 }
