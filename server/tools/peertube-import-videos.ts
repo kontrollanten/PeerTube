@@ -5,6 +5,7 @@ import * as program from 'commander'
 import * as prompt from 'prompt'
 import { accessSync, constants } from 'fs'
 import { buildOriginallyPublishedAt, safeGetYoutubeDL } from '../helpers/youtube-dl'
+import getPublishDate from '../helpers/youtube-get-publish-date'
 import { buildCommonVideoOptions, getLogger, getServerCredentials, getAdminTokenOrDie } from './cli'
 import { makeGetRequest, makePostBodyRequest } from '../../shared/extra-utils/requests/requests'
 import { VideoPrivacy, VideoImportState } from '../../shared'
@@ -88,10 +89,15 @@ async function run (url: string, user: UserInfo) {
 
   log.info('Will import %d videos.\n', infoArray.length)
 
+  const { items: originallyPublishedAtItems } = await getPublishDate(
+    infoArray.map(i => i.id).join(',')
+  )
+
   for (const info of infoArray) {
     try {
       await processVideo({
         cwd: program['tmpdir'],
+        originallyPublishedAt: originallyPublishedAtItems.find(o => o.id === info.id).snippet.publishedAt,
         url,
         user,
         youtubeInfo: info
@@ -107,11 +113,12 @@ async function run (url: string, user: UserInfo) {
 
 function processVideo (parameters: {
   cwd: string
+  originallyPublishedAt: string
   url: string
   user: { username: string, password: string }
   youtubeInfo: any
 }) {
-  const { youtubeInfo } = parameters
+  const { originallyPublishedAt, youtubeInfo } = parameters
   const youtubeUrl = buildUrl(youtubeInfo)
 
   return new Promise(async res => {
@@ -177,6 +184,7 @@ function processVideo (parameters: {
       token: accessToken,
       fields: {
         channelId: videoChannel.id,
+        originallyPublishedAt,
         privacy: VideoPrivacy.PUBLIC,
         targetUrl: youtubeUrl
       },
