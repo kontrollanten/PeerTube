@@ -105,6 +105,24 @@ async function run (url: string, user: UserInfo) {
   const { url: serverUrl, username, password } = await getServerCredentials(program)
   const accessToken = await getAdminTokenOrDie(serverUrl, username, password)
 
+  log.info('Retrieving list of previous imported videos...')
+
+  let importedVideos = []
+  let done = false
+
+  while (!done) {
+    const { body } = await makeGetRequest({
+      url: serverUrl,
+      path: '/api/v1/users/me/videos/imports?sort=-createdAt&count=100',
+      statusCodeExpected: 200,
+      token: accessToken
+    })
+
+    importedVideos = importedVideos.concat(body.data)
+
+    done = body.total === importedVideos.length
+  }
+
   for (const info of infoArray) {
     const apiInfo = originallyPublishedAtItems.find(o => o.id === info.id)
 
@@ -120,6 +138,7 @@ async function run (url: string, user: UserInfo) {
           serverUrl,
         },
         cwd: program['tmpdir'],
+        importedVideos,
         originallyPublishedAt: apiInfo.snippet.publishedAt,
         url,
         user,
@@ -136,13 +155,14 @@ async function run (url: string, user: UserInfo) {
 
 function processVideo (parameters: {
   cwd: string
+  importedVideos: any[]
   originallyPublishedAt: string
   url: string
   user: { username: string, password: string }
   ptCredentials: { accessToken: string, serverUrl: string }
   youtubeInfo: any
 }) {
-  const { originallyPublishedAt, ptCredentials: { accessToken, serverUrl }, youtubeInfo } = parameters
+  const { importedVideos, originallyPublishedAt, ptCredentials: { accessToken, serverUrl }, youtubeInfo } = parameters
   const youtubeUrl = buildUrl(youtubeInfo)
 
   return new Promise(async res => {
@@ -169,21 +189,6 @@ function processVideo (parameters: {
     }
 
     log.info('Checking if user has already imported the video...')
-    let importedVideos = []
-    let done = false
-
-    while (!done) {
-      const { body } = await makeGetRequest({
-        url: serverUrl,
-        path: '/api/v1/users/me/videos/imports?sort=-createdAt&count=100',
-        statusCodeExpected: 200,
-        token: accessToken
-      })
-
-      importedVideos = importedVideos.concat(body.data)
-
-      done = body.total === importedVideos.length
-    }
 
     if (
       importedVideos.find(v =>
