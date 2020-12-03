@@ -113,7 +113,7 @@ async function run (url: string, user: UserInfo) {
   while (!done) {
     const { body } = await makeGetRequest({
       url: serverUrl,
-      path: '/api/v1/users/me/videos/imports?sort=-createdAt&count=100',
+      path: `/api/v1/users/me/videos/imports?sort=-createdAt&count=100&start=${importedVideos.length}`,
       statusCodeExpected: 200,
       token: accessToken
     })
