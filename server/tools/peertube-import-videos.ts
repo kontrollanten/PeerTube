@@ -89,9 +89,18 @@ async function run (url: string, user: UserInfo) {
 
   log.info('Will import %d videos.\n', infoArray.length)
 
-  const { items: originallyPublishedAtItems } = await getPublishDate(
-    infoArray.map(i => i.id).join(',')
-  )
+  let originallyPublishedAtItems = []
+
+  for (let i = 0; i < infoArray.length; i += 50) {
+    const data = await getPublishDate(
+      infoArray
+        .slice(i, i + 50)
+        .map(i => i.id)
+        .join(',')
+    )
+
+    originallyPublishedAtItems = originallyPublishedAtItems.concat(data.items)
+  }
 
   const { url: serverUrl, username, password } = await getServerCredentials(program)
   const accessToken = await getAdminTokenOrDie(serverUrl, username, password)
@@ -100,7 +109,8 @@ async function run (url: string, user: UserInfo) {
     const apiInfo = originallyPublishedAtItems.find(o => o.id === info.id)
 
     if (!apiInfo) {
-      console.error(`Can't find publish date for ${info.id}. Skipping. Probably the data is paginated in the YouTube API response.`)
+      console.error(`Can't find publish date for ${info.id}. Skipping.`)
+      continue
     }
 
     try {
@@ -159,16 +169,21 @@ function processVideo (parameters: {
     }
 
     log.info('Checking if user has already imported the video...')
-    /**
-      * Warning: This is unsafe since we will only check in the 100 latest imports.
-      * TOOD: Create an endpoint to search for a specific import by targetUrl
-      */
-    const { body: { data: importedVideos } } = await makeGetRequest({
-      url: serverUrl,
-      path: '/api/v1/users/me/videos/imports?sort=-createdAt&count=100',
-      statusCodeExpected: 200,
-      token: accessToken
-    })
+    let importedVideos = []
+    let done = false
+
+    while (!done) {
+      const { body } = await makeGetRequest({
+        url: serverUrl,
+        path: '/api/v1/users/me/videos/imports?sort=-createdAt&count=100',
+        statusCodeExpected: 200,
+        token: accessToken
+      })
+
+      importedVideos = importedVideos.concat(body.data)
+
+      done = body.total === importedVideos.length
+    }
 
     if (
       importedVideos.find(v =>
