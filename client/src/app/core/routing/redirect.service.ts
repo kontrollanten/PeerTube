@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core'
-import { NavigationCancel, NavigationEnd, Router } from '@angular/router'
+import { NavigationEnd, Router } from '@angular/router'
 import { ServerService } from '../server'
 
 @Injectable()
@@ -36,7 +36,7 @@ export class RedirectService {
     // Track previous url
     this.currentUrl = this.router.url
     router.events.subscribe(event => {
-      if (event instanceof NavigationEnd || event instanceof NavigationCancel) {
+      if (event instanceof NavigationEnd) {
         this.previousUrl = this.currentUrl
         this.currentUrl = event.url
       }
