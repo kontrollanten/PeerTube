@@ -176,7 +176,7 @@ const JOB_TTL: { [id in JobType]: number } = {
 }
 const REPEAT_JOBS: { [ id: string ]: EveryRepeatOptions | CronRepeatOptions } = {
   'videos-views': {
-    cron: randomInt(1, 20) + ' * * * *' // Between 1-20 minutes past the hour
+    cron: CONFIG.VIEWS.VIDEOS.UPDATE_INTERVAL
   }
 }
 
