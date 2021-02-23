@@ -146,6 +146,8 @@ type P2PMediaLoaderPluginOptions = {
 }
 
 type VideoJSPluginOptions = {
+  chromecast?: any
+
   playlist?: PlaylistPluginOptions
 
   peertube: PeerTubePluginOptions
