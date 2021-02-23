@@ -20,6 +20,7 @@ import './videojs-components/settings-panel-child'
 import './videojs-components/theater-button'
 import './playlist/playlist-plugin'
 import videojs from 'video.js'
+import chromecast from '@silvermine/videojs-chromecast'
 import { isDefaultLocale } from '@shared/core-utils/i18n'
 import { VideoFile } from '@shared/models'
 import { RedundancyUrlManager } from './p2p-media-loader/redundancy-url-manager'
@@ -217,6 +218,25 @@ export class PeertubePlayerManager {
     const commonOptions = options.common
     const isHLS = mode === 'p2p-media-loader'
 
+    window['__onGCastApiAvailable'] = (isAvailable: any) => {
+      console.log({isAvailable})
+   }
+   
+
+   [
+    '//www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1',
+    '//www.gstatic.com/cast/sdk/libs/devtools/debug_layer/caf_receiver_logger.js',
+ ].forEach(url => {
+    const script = document.createElement('script');
+    script.src = url;
+    
+    document.body.appendChild(script);           
+ })
+
+ console.log({chromecast})
+    chromecast(videojs, {})
+
+
     let autoplay = this.getAutoPlayValue(commonOptions.autoplay)
     let html5 = {}
 
@@ -231,6 +251,9 @@ export class PeertubePlayerManager {
         videoCaptions: commonOptions.videoCaptions,
         stopTime: commonOptions.stopTime,
         isLive: commonOptions.isLive
+      },
+      chromecast: {
+        receiverAppID: '3AD7C302'
       }
     }
 
@@ -274,6 +297,8 @@ export class PeertubePlayerManager {
       playbackRates: [ 0.5, 0.75, 1, 1.25, 1.5, 2 ],
 
       plugins,
+
+      techOrder: ['chromecast', 'html5'],
 
       controlBar: {
         children: this.getControlBarChildren(mode, {
