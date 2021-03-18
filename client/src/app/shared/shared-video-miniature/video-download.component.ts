@@ -20,6 +20,8 @@ export class VideoDownloadComponent {
   resolutionId: number | string = -1
   subtitleLanguageId: string
 
+  activeQualityTabId: number | string = '720p'
+
   video: VideoDetails
   videoFile: VideoFile
   videoFileMetadataFormat: FileMetadata
@@ -27,6 +29,8 @@ export class VideoDownloadComponent {
   videoFileMetadataAudioStream: FileMetadata | undefined
   videoCaptions: VideoCaption[]
   activeModal: NgbActiveModal
+
+  isAdvancedCustomizationCollapsed: boolean = true
 
   type: DownloadType = 'video'
 
@@ -62,8 +66,9 @@ export class VideoDownloadComponent {
 
     this.activeModal = this.modalService.open(this.modal, { centered: true })
 
+    this.activeQualityTabId = this.getVideoFiles()[0].resolution.id
+
     this.resolutionId = this.getVideoFiles()[0].resolution.id
-    this.onResolutionIdChange()
     if (this.videoCaptions) this.subtitleLanguageId = this.videoCaptions[0].language.id
   }
 
