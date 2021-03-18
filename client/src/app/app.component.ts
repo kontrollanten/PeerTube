@@ -1,3 +1,4 @@
+import { ServiceWorkerService } from './core/service-worker/service-worker.service';
 import { Hotkey, HotkeysService } from 'angular2-hotkeys'
 import { concat } from 'rxjs'
 import { filter, first, map, pairwise } from 'rxjs/operators'
@@ -57,9 +58,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     private markdownService: MarkdownService,
     private ngbConfig: NgbConfig,
     private loadingBar: LoadingBarService,
+    serviceWorkerService: ServiceWorkerService,
     public menu: MenuService
   ) {
     this.ngbConfig.animation = false
+    serviceWorkerService.subscribe()
   }
 
   get instanceName () {

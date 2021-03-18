@@ -24,6 +24,7 @@ import { MCommentOwnerVideo, MVideoAccountLight, MVideoFullLight } from '../type
 import { isBlockedByServerOrAccount } from './blocklist'
 import { Emailer } from './emailer'
 import { PeerTubeSocket } from './peertube-socket'
+import { Hooks } from './plugins/hooks'
 
 class Notifier {
 
@@ -678,6 +679,8 @@ class Notifier {
     for (const user of options.users) {
       if (this.isWebNotificationEnabled(options.settingGetter(user))) {
         const notification = await options.notificationCreator(user)
+
+        Hooks.runAction('action:api.web-notification.created', { notification })
 
         PeerTubeSocket.Instance.sendNotification(user.id, notification)
       }

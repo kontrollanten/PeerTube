@@ -1,3 +1,4 @@
+import { ServiceWorkerService } from './service-worker/service-worker.service';
 import { HotkeyModule } from 'angular2-hotkeys'
 import { MessageService } from 'primeng/api'
 import { ToastModule } from 'primeng/toast'
@@ -69,6 +70,7 @@ import { LocalStorageService, ScreenService, SessionStorageService } from './wra
 
     UserService,
 
+    ServiceWorkerService,
     ScreenService,
     LocalStorageService,
     SessionStorageService,

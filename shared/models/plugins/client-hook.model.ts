@@ -59,6 +59,11 @@ export const clientActionHookObject = {
   // Fired when the application is being initialized
   'action:application.init': true,
 
+  // Fired when the service worker activated event occurs
+  'action:service-worker.activated': true,
+  // Fired when the service worker available event occurs
+  'action:service-worker.available': true,
+
   // Fired when the video watch page is being initialized
   'action:video-watch.init': true,
   // Fired when the video watch page loaded the video
