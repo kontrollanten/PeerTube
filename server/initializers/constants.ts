@@ -340,7 +340,7 @@ const VIEW_LIFETIME = {
   LIVE: 60000 * 5 // 5 minutes
 }
 
-let CONTACT_FORM_LIFETIME = 60000 * 60 // 1 hour
+const CONTACT_FORM_LIFETIME = 60000 * 60 // 1 hour
 
 const VIDEO_TRANSCODING_FPS: VideoTranscodingFPS = {
   MIN: 10,
@@ -722,7 +722,7 @@ const P2P_MEDIA_LOADER_PEER_VERSION = 2
 const PLUGIN_GLOBAL_CSS_FILE_NAME = 'plugins-global.css'
 const PLUGIN_GLOBAL_CSS_PATH = join(CONFIG.STORAGE.TMP_DIR, PLUGIN_GLOBAL_CSS_FILE_NAME)
 
-let PLUGIN_EXTERNAL_AUTH_TOKEN_LIFETIME = 1000 * 60 * 5 // 5 minutes
+const PLUGIN_EXTERNAL_AUTH_TOKEN_LIFETIME = 1000 * 60 * 5 // 5 minutes
 
 const DEFAULT_THEME_NAME = 'default'
 const DEFAULT_USER_THEME_NAME = 'instance-default'
@@ -749,6 +749,9 @@ if (isTestInstance() === true) {
 
   STATIC_MAX_AGE.SERVER = '0'
 
+  /*
+
+  return
   ACTIVITY_PUB.COLLECTION_ITEMS_PER_PAGE = 2
   ACTIVITY_PUB.ACTOR_REFRESH_INTERVAL = 10 * 1000 // 10 seconds
   ACTIVITY_PUB.VIDEO_REFRESH_INTERVAL = 10 * 1000 // 10 seconds
@@ -786,6 +789,7 @@ if (isTestInstance() === true) {
   VIDEO_LIVE.CLEANUP_DELAY = 5000
   VIDEO_LIVE.SEGMENT_TIME_SECONDS = 2
   VIDEO_LIVE.EDGE_LIVE_DELAY_SEGMENTS_NOTIFICATION = 1
+  */
 }
 
 updateWebserverUrls()

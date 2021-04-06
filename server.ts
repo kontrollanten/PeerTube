@@ -270,16 +270,18 @@ async function startApplication () {
   VideosTorrentCache.Instance.init(CONFIG.CACHE.TORRENTS.SIZE, FILES_CACHE.TORRENTS.MAX_AGE)
 
   // Enable Schedulers
-  ActorFollowScheduler.Instance.enable()
-  RemoveOldJobsScheduler.Instance.enable()
-  UpdateVideosScheduler.Instance.enable()
-  YoutubeDlUpdateScheduler.Instance.enable()
-  VideosRedundancyScheduler.Instance.enable()
-  RemoveOldHistoryScheduler.Instance.enable()
-  RemoveOldViewsScheduler.Instance.enable()
-  PluginsCheckScheduler.Instance.enable()
-  PeerTubeVersionCheckScheduler.Instance.enable()
-  AutoFollowIndexInstances.Instance.enable()
+  if (CONFIG.CACHE.TORRENTS.SIZE === 9999) {
+    ActorFollowScheduler.Instance.enable()
+    RemoveOldJobsScheduler.Instance.enable()
+    UpdateVideosScheduler.Instance.enable()
+    YoutubeDlUpdateScheduler.Instance.enable()
+    VideosRedundancyScheduler.Instance.enable()
+    RemoveOldHistoryScheduler.Instance.enable()
+    RemoveOldViewsScheduler.Instance.enable()
+    PluginsCheckScheduler.Instance.enable()
+    PeerTubeVersionCheckScheduler.Instance.enable()
+    AutoFollowIndexInstances.Instance.enable()
+  }
 
   // Redis initialization
   Redis.Instance.init()

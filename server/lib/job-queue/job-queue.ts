@@ -234,15 +234,6 @@ class JobQueue {
   }
 
   private addRepeatableJobs () {
-    this.queues['videos-views'].add({}, {
-      repeat: REPEAT_JOBS['videos-views']
-    }).catch(err => logger.error('Cannot add repeatable job.', { err }))
-
-    if (CONFIG.FEDERATION.VIDEOS.CLEANUP_REMOTE_INTERACTIONS) {
-      this.queues['activitypub-cleaner'].add({}, {
-        repeat: REPEAT_JOBS['activitypub-cleaner']
-      }).catch(err => logger.error('Cannot add repeatable job.', { err }))
-    }
   }
 
   private filterJobTypes (jobType?: JobType) {
