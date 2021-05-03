@@ -40,7 +40,7 @@ import { TranslationsManager } from './translations-manager'
 import { buildVideoOrPlaylistEmbed, buildVideoLink, getRtcConfig, isSafari, isIOS } from './utils'
 import { copyToClipboard } from '../../root-helpers/utils'
 // @ts-ignore
-import { default as registerChromecastPlugin } from '@silvermine/videojs-chromecast';
+import registerChromecastPlugin from '@silvermine/videojs-chromecast';
 
 registerChromecastPlugin(videojs, { preloadWebComponents: true });
 
@@ -249,7 +249,7 @@ export class PeertubePlayerManager {
         videoUUID: commonOptions.videoUUID,
       },
       chromecast: {
-        receiverApplicationId: ""
+        receiverAppID: "" // one with forced fmp4
       }
     }
 
@@ -291,7 +291,7 @@ export class PeertubePlayerManager {
       poster: commonOptions.poster,
       inactivityTimeout: commonOptions.inactivityTimeout,
       playbackRates: [ 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2 ],
-
+      techOrder: [ 'chromecast', 'html5' ],
       plugins,
 
       controlBar: {
