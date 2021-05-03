@@ -159,6 +159,8 @@ type VideoJSPluginOptions = {
   webtorrent?: WebtorrentPluginOptions
 
   p2pMediaLoader?: P2PMediaLoaderPluginOptions
+
+  chromecast?: any
 }
 
 type LoadedQualityData = {

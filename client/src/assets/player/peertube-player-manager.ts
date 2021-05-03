@@ -39,6 +39,10 @@ import {
 import { TranslationsManager } from './translations-manager'
 import { buildVideoOrPlaylistEmbed, buildVideoLink, getRtcConfig, isSafari, isIOS } from './utils'
 import { copyToClipboard } from '../../root-helpers/utils'
+// @ts-ignore
+import { default as registerChromecastPlugin } from '@silvermine/videojs-chromecast';
+
+registerChromecastPlugin(videojs, { preloadWebComponents: true });
 
 // Change 'Playback Rate' to 'Speed' (smaller for our settings menu)
 (videojs.getComponent('PlaybackRateMenuButton') as any).prototype.controlText_ = 'Speed'
@@ -242,7 +246,10 @@ export class PeertubePlayerManager {
         videoCaptions: commonOptions.videoCaptions,
         stopTime: commonOptions.stopTime,
         isLive: commonOptions.isLive,
-        videoUUID: commonOptions.videoUUID
+        videoUUID: commonOptions.videoUUID,
+      },
+      chromecast: {
+        receiverApplicationId: ""
       }
     }
 
