@@ -1452,13 +1452,6 @@
     underscore "1.9.1"
     webcomponents.js "git+https://git@github.com/webcomponents/webcomponentsjs.git#v0.7.24"
 
-"@silvermine/videojs-chromecast@file:external-projects/videojs-chromecast":
-  version "1.2.2"
-  dependencies:
-    class.extend "0.9.1"
-    underscore "1.9.1"
-    webcomponents.js "git+https://git@github.com/webcomponents/webcomponentsjs.git#v0.7.24"
-
 "@stylelint/postcss-css-in-js@^0.37.2":
   version "0.37.2"
   resolved "https://registry.yarnpkg.com/@stylelint/postcss-css-in-js/-/postcss-css-in-js-0.37.2.tgz#7e5a84ad181f4234a2480803422a47b8749af3d2"
