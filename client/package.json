@@ -135,6 +135,6 @@
     "zone.js": "~0.11.3"
   },
   "dependencies": {
-    "@silvermine/videojs-chromecast": "file:external-projects/videojs-chromecast"
+    "@silvermine/videojs-chromecast": "./external-projects/videojs-chromecast"
   }
 }

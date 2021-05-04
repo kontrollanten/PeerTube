@@ -249,8 +249,8 @@ export class PeertubePlayerManager {
         videoUUID: commonOptions.videoUUID,
       },
       chromecast: {
-        receiverAppID: "" // one with forced fmp4
-      }
+        
+      },
     }
 
     if (commonOptions.playlist) {
@@ -293,6 +293,14 @@ export class PeertubePlayerManager {
       playbackRates: [ 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2 ],
       techOrder: [ 'chromecast', 'html5' ],
       plugins,
+      
+      chromecast: {
+        modifyLoadRequestFn: function (loadRequest: any) {
+          loadRequest.media.hlsSegmentFormat = 'fmp4';
+          loadRequest.media.hlsVideoSegmentFormat = 'fmp4';
+          return loadRequest;
+        }
+      },
 
       controlBar: {
         children: this.getControlBarChildren(mode, {
