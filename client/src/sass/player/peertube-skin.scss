@@ -47,6 +47,11 @@ body {
     content: ''; /* Remove Circle From Progress Bar */
   }
 
+  .vjs-chromecast-button .vjs-icon-placeholder {
+    width: 1.8em;
+    height: 1.8em;
+  }
+
   .vjs-audio-button {
     display: none;
   }
