@@ -1,14 +1,17 @@
 import { FindOptions, ModelIndexesOptions, Op, WhereOptions } from 'sequelize'
 import { AllowNull, BelongsTo, Column, CreatedAt, Default, ForeignKey, Is, Model, Scopes, Table, UpdatedAt } from 'sequelize-typescript'
 import { UserNotificationIncludes, UserNotificationModelForApi } from '@server/types/models/user'
+import { AttributesOnly } from '@shared/core-utils'
 import { UserNotification, UserNotificationType } from '../../../shared'
 import { isBooleanValid } from '../../helpers/custom-validators/misc'
 import { isUserNotificationTypeValid } from '../../helpers/custom-validators/user-notifications'
 import { AbuseModel } from '../abuse/abuse'
 import { VideoAbuseModel } from '../abuse/video-abuse'
 import { VideoCommentAbuseModel } from '../abuse/video-comment-abuse'
-import { ActorModel } from '../activitypub/actor'
-import { ActorFollowModel } from '../activitypub/actor-follow'
+import { AccountModel } from '../account/account'
+import { ActorModel } from '../actor/actor'
+import { ActorFollowModel } from '../actor/actor-follow'
+import { ActorImageModel } from '../actor/actor-image'
 import { ApplicationModel } from '../application/application'
 import { PluginModel } from '../server/plugin'
 import { ServerModel } from '../server/server'
@@ -18,8 +21,6 @@ import { VideoBlacklistModel } from '../video/video-blacklist'
 import { VideoChannelModel } from '../video/video-channel'
 import { VideoCommentModel } from '../video/video-comment'
 import { VideoImportModel } from '../video/video-import'
-import { AccountModel } from './account'
-import { ActorImageModel } from './actor-image'
 import { UserModel } from './user'
 
 enum ScopeNames {
@@ -286,7 +287,7 @@ function buildAccountInclude (required: boolean, withActor = false) {
     }
   ] as (ModelIndexesOptions & { where?: WhereOptions })[]
 })
-export class UserNotificationModel extends Model {
+export class UserNotificationModel extends Model<Partial<AttributesOnly<UserNotificationModel>>> {
 
   @AllowNull(false)
   @Default(null)

@@ -2,18 +2,13 @@ import { isSignupAllowed, isSignupAllowedForCurrentIP } from '@server/helpers/si
 import { getServerCommit } from '@server/helpers/utils'
 import { CONFIG, isEmailEnabled } from '@server/initializers/config'
 import { CONSTRAINTS_FIELDS, DEFAULT_THEME_NAME, PEERTUBE_VERSION } from '@server/initializers/constants'
-import { RegisteredExternalAuthConfig, RegisteredIdAndPassAuthConfig, ServerConfig } from '@shared/models'
+import { HTMLServerConfig, RegisteredExternalAuthConfig, RegisteredIdAndPassAuthConfig, ServerConfig } from '@shared/models'
 import { Hooks } from './plugins/hooks'
 import { PluginManager } from './plugins/plugin-manager'
 import { getThemeOrDefault } from './plugins/theme-utils'
-import { getEnabledResolutions } from './video-transcoding'
-import { VideoTranscodingProfilesManager } from './video-transcoding-profiles'
-
-let serverCommit: string
+import { VideoTranscodingProfilesManager } from './transcoding/video-transcoding-profiles'
 
 async function getServerConfig (ip?: string): Promise<ServerConfig> {
-  if (serverCommit === undefined) serverCommit = await getServerCommit()
-
   const { allowed } = await Hooks.wrapPromiseFun(
     isSignupAllowed,
     {
@@ -23,6 +18,23 @@ async function getServerConfig (ip?: string): Promise<ServerConfig> {
   )
 
   const allowedForCurrentIP = isSignupAllowedForCurrentIP(ip)
+
+  const signup = {
+    allowed,
+    allowedForCurrentIP,
+    requiresEmailVerification: CONFIG.SIGNUP.REQUIRES_EMAIL_VERIFICATION
+  }
+
+  const htmlConfig = await getHTMLServerConfig()
+
+  return { ...htmlConfig, signup }
+}
+
+// Config injected in HTML
+let serverCommit: string
+async function getHTMLServerConfig (): Promise<HTMLServerConfig> {
+  if (serverCommit === undefined) serverCommit = await getServerCommit()
+
   const defaultTheme = getThemeOrDefault(CONFIG.THEME.DEFAULT, DEFAULT_THEME_NAME)
 
   return {
@@ -66,11 +78,6 @@ async function getServerConfig (ip?: string): Promise<ServerConfig> {
     },
     serverVersion: PEERTUBE_VERSION,
     serverCommit,
-    signup: {
-      allowed,
-      allowedForCurrentIP,
-      requiresEmailVerification: CONFIG.SIGNUP.REQUIRES_EMAIL_VERIFICATION
-    },
     transcoding: {
       hls: {
         enabled: CONFIG.TRANSCODING.HLS.ENABLED
@@ -208,12 +215,24 @@ function getRegisteredPlugins () {
                       }))
 }
 
+function getEnabledResolutions (type: 'vod' | 'live') {
+  const transcoding = type === 'vod'
+    ? CONFIG.TRANSCODING
+    : CONFIG.LIVE.TRANSCODING
+
+  return Object.keys(transcoding.RESOLUTIONS)
+               .filter(key => transcoding.ENABLED && transcoding.RESOLUTIONS[key] === true)
+               .map(r => parseInt(r, 10))
+}
+
 // ---------------------------------------------------------------------------
 
 export {
   getServerConfig,
   getRegisteredThemes,
-  getRegisteredPlugins
+  getEnabledResolutions,
+  getRegisteredPlugins,
+  getHTMLServerConfig
 }
 
 // ---------------------------------------------------------------------------
