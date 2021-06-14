@@ -21,6 +21,7 @@ import './videojs-components/settings-panel'
 import './videojs-components/settings-panel-child'
 import './videojs-components/theater-button'
 import './playlist/playlist-plugin'
+import { runHook } from '@root-helpers/plugins'
 import videojs from 'video.js'
 import { isDefaultLocale } from '@shared/core-utils/i18n'
 import { VideoFile } from '@shared/models'
@@ -144,7 +145,7 @@ export class PeertubePlayerManager {
       ])
     }
 
-    const videojsOptions = this.getVideojsOptions(mode, options, p2pMediaLoader)
+    const videojsOptions = await this.getVideojsOptions(mode, options, p2pMediaLoader)
 
     await TranslationsManager.loadLocaleInVideoJS(options.common.serverUrl, options.common.language, videojs)
 
@@ -206,7 +207,7 @@ export class PeertubePlayerManager {
     await import('./webtorrent/webtorrent-plugin')
 
     const mode = 'webtorrent'
-    const videojsOptions = this.getVideojsOptions(mode, options)
+    const videojsOptions = await this.getVideojsOptions(mode, options)
 
     const self = this
     videojs(newVideoElement, videojsOptions, function (this: videojs.Player) {
@@ -218,11 +219,11 @@ export class PeertubePlayerManager {
     })
   }
 
-  private static getVideojsOptions (
+  private static async getVideojsOptions (
     mode: PlayerMode,
     options: PeertubePlayerManagerOptions,
     p2pMediaLoaderModule?: any
-  ): videojs.PlayerOptions {
+  ): Promise<videojs.PlayerOptions> {
     const commonOptions = options.common
     const isHLS = mode === 'p2p-media-loader'
 
@@ -306,7 +307,7 @@ export class PeertubePlayerManager {
       Object.assign(videojsOptions, { language: commonOptions.language })
     }
 
-    return videojsOptions
+    return runHook('filter:videojs.options', videojsOptions)
   }
 
   private static addP2PMediaLoaderOptions (

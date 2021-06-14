@@ -67,7 +67,6 @@ export class PeerTubeEmbed {
 
   private wrapperElement: HTMLElement
 
-  private peertubeHooks: Hooks = {}
   private loadedScripts = new Set<string>()
 
   static async main () {
@@ -763,7 +762,6 @@ export class PeerTubeEmbed {
         }
 
         await loadPlugin({
-          hooks: this.peertubeHooks,
           pluginInfo,
           onSettingsScripts: () => undefined,
           peertubeHelpersFactory: _ => this.buildPeerTubeHelpers(translations)
@@ -807,7 +805,7 @@ export class PeerTubeEmbed {
   }
 
   private runHook <T> (hookName: ClientHookName, result?: T, params?: any): Promise<T> {
-    return runHook(this.peertubeHooks, hookName, result, params)
+    return runHook(hookName, result, params)
   }
 }
 

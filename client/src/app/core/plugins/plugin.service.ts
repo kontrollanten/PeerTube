@@ -56,7 +56,6 @@ export class PluginService implements ClientHook {
   private loadedScopes: PluginClientScope[] = []
   private loadingScopes: { [id in PluginClientScope]?: boolean } = {}
 
-  private hooks: Hooks = {}
   private formFields: FormFields = {
     video: []
   }
@@ -181,7 +180,7 @@ export class PluginService implements ClientHook {
 
   runHook <T> (hookName: ClientHookName, result?: T, params?: any): Promise<T> {
     return this.zone.runOutsideAngular(() => {
-      return runHook(this.hooks, hookName, result, params)
+      return runHook(hookName, result, params)
     })
   }
 
@@ -225,7 +224,6 @@ export class PluginService implements ClientHook {
       this.helpers[npmName] = helpers
 
       return loadPlugin({
-        hooks: this.hooks,
         formFields: this.formFields,
         onSettingsScripts: options => this.settingsScripts[npmName] = options,
         pluginInfo,
