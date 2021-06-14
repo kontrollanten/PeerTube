@@ -181,7 +181,7 @@ const JOB_TTL: { [id in JobType]: number } = {
 }
 const REPEAT_JOBS: { [ id: string ]: EveryRepeatOptions | CronRepeatOptions } = {
   'videos-views': {
-    cron: randomInt(1, 20) + ' * * * *' // Between 1-20 minutes past the hour
+    cron: CONFIG.VIEWS.VIDEOS.UPDATE_INTERVAL
   },
   'activitypub-cleaner': {
     cron: '30 5 * * ' + randomInt(0, 7) // 1 time per week (random day) at 5:30 AM
@@ -702,7 +702,8 @@ const CUSTOM_HTML_TAG_COMMENTS = {
   TITLE: '<!-- title tag -->',
   DESCRIPTION: '<!-- description tag -->',
   CUSTOM_CSS: '<!-- custom css tag -->',
-  META_TAGS: '<!-- meta tags -->'
+  META_TAGS: '<!-- meta tags -->',
+  SERVER_CONFIG: '<!-- server config -->'
 }
 
 // ---------------------------------------------------------------------------

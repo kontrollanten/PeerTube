@@ -2,9 +2,9 @@ import * as cors from 'cors'
 import * as express from 'express'
 import { join } from 'path'
 import { serveIndexHTML } from '@server/lib/client-html'
-import { getRegisteredPlugins, getRegisteredThemes } from '@server/lib/config'
+import { getEnabledResolutions, getRegisteredPlugins, getRegisteredThemes } from '@server/lib/config'
 import { HttpStatusCode } from '@shared/core-utils/miscs/http-error-codes'
-import { HttpNodeinfoDiasporaSoftwareNsSchema20 } from '../../shared/models/nodeinfo'
+import { HttpNodeinfoDiasporaSoftwareNsSchema20 } from '../../shared/models/nodeinfo/nodeinfo.model'
 import { root } from '../helpers/core-utils'
 import { CONFIG, isEmailEnabled } from '../initializers/config'
 import {
@@ -18,10 +18,9 @@ import {
   WEBSERVER
 } from '../initializers/constants'
 import { getThemeOrDefault } from '../lib/plugins/theme-utils'
-import { getEnabledResolutions } from '../lib/video-transcoding'
 import { asyncMiddleware } from '../middlewares'
 import { cacheRoute } from '../middlewares/cache'
-import { UserModel } from '../models/account/user'
+import { UserModel } from '../models/user/user'
 import { VideoModel } from '../models/video/video'
 import { VideoCommentModel } from '../models/video/video-comment'
 
