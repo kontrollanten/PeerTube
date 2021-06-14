@@ -40,6 +40,10 @@ import {
 import { TranslationsManager } from './translations-manager'
 import { buildVideoOrPlaylistEmbed, buildVideoLink, getRtcConfig, isSafari, isIOS } from './utils'
 import { copyToClipboard } from '../../root-helpers/utils'
+// @ts-ignore
+import registerChromecastPlugin from '@silvermine/videojs-chromecast';
+
+registerChromecastPlugin(videojs, { preloadWebComponents: true });
 
 // Change 'Playback Rate' to 'Speed' (smaller for our settings menu)
 (videojs.getComponent('PlaybackRateMenuButton') as any).prototype.controlText_ = 'Speed'
@@ -243,8 +247,11 @@ export class PeertubePlayerManager {
         videoCaptions: commonOptions.videoCaptions,
         stopTime: commonOptions.stopTime,
         isLive: commonOptions.isLive,
-        videoUUID: commonOptions.videoUUID
-      }
+        videoUUID: commonOptions.videoUUID,
+      },
+      chromecast: {
+        
+      },
     }
 
     if (commonOptions.playlist) {
@@ -285,8 +292,16 @@ export class PeertubePlayerManager {
       poster: commonOptions.poster,
       inactivityTimeout: commonOptions.inactivityTimeout,
       playbackRates: [ 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2 ],
-
+      techOrder: [ 'chromecast', 'html5' ],
       plugins,
+      
+      chromecast: {
+        modifyLoadRequestFn: function (loadRequest: any) {
+          loadRequest.media.hlsSegmentFormat = 'fmp4';
+          loadRequest.media.hlsVideoSegmentFormat = 'fmp4';
+          return loadRequest;
+        }
+      },
 
       controlBar: {
         children: this.getControlBarChildren(mode, {
