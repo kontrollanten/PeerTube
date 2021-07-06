@@ -87,6 +87,7 @@ uploadRouter.put('/upload-resumable',
   authenticate,
   uploadxMiddleware, // uploadx doesn't use call next() before the file upload completes
   asyncMiddleware(videosAddResumableValidator),
+  asyncMiddleware(moveVideoFile()),
   asyncMiddleware(addVideoResumable)
 )
 
@@ -127,6 +128,70 @@ export async function addVideoResumable (_req: express.Request, res: express.Res
   return addVideo({ res, videoPhysicalFile, videoInfo, files })
 }
 
+function moveVideoFile () {
+  interface FileMoveQueueItem {
+    status: 'moving' | 'done'
+    video: MVideoFullLight
+    videoFile: VideoFileModel
+  }
+  const fileMoveInProgress: { [key: string]: FileMoveQueueItem } | {} = {}
+
+  return async function (req: express.Request, res: express.Response, next: express.NextFunction) {
+    const uploadId = req.body.id
+
+    const moveProcess: Promise<'timeout' | 'done'> = new Promise(async resolve => {
+      fileMoveInProgress[uploadId] = fileMoveInProgress[uploadId] || {}
+
+      if (fileMoveInProgress[uploadId].status === 'moving') {
+        return
+      }
+
+      if (fileMoveInProgress[uploadId].status === undefined) {
+        const videoPhysicalFile = res.locals.videoFileResumable
+        const videoInfo = videoPhysicalFile.metadata
+        const videoChannel = res.locals.videoChannel
+        const videoData = buildLocalVideoFromReq(videoInfo, videoChannel.id)
+        videoData.state = CONFIG.TRANSCODING.ENABLED
+          ? VideoState.TO_TRANSCODE
+          : VideoState.PUBLISHED
+
+        videoData.duration = videoPhysicalFile.duration // duration was added by a previous middleware
+        const video = new VideoModel(videoData) as MVideoFullLight
+        video.VideoChannel = videoChannel
+        video.url = getLocalVideoActivityPubUrl(video) // We use the UUID, so set the URL after building the object
+
+        const videoFile = await buildNewFile(video, videoPhysicalFile)
+
+        fileMoveInProgress[uploadId] = {
+          status: 'moving',
+          videoFile,
+          video
+        }
+
+        // Move physical file
+        const destination = getVideoFilePath(video, videoFile)
+        await move(videoPhysicalFile.path, destination)
+        fileMoveInProgress[uploadId].status = 'done'
+      }
+
+      resolve('done')
+    })
+
+    const status = await Promise.race([
+      moveProcess,
+      new Promise(resolve => setTimeout(() => resolve('timeout'), 1000 * 15))
+    ])
+
+    if (status === 'timeout') {
+      return res.status(308).json({})
+    } else {
+      res.locals.video = fileMoveInProgress[uploadId].video
+      res.locals.videoFile = fileMoveInProgress[uploadId].videoFile
+      return next()
+    }
+  }
+}
+
 async function addVideo (options: {
   res: express.Response
   videoPhysicalFile: express.VideoUploadFile
@@ -134,26 +199,13 @@ async function addVideo (options: {
   files: express.UploadFiles
 }) {
   const { res, videoPhysicalFile, videoInfo, files } = options
-  const videoChannel = res.locals.videoChannel
+  const video = res.locals.video
+  const videoFile = res.locals.videoFile
   const user = res.locals.oauth.token.User
-
-  const videoData = buildLocalVideoFromReq(videoInfo, videoChannel.id)
-
-  videoData.state = CONFIG.TRANSCODING.ENABLED
-    ? VideoState.TO_TRANSCODE
-    : VideoState.PUBLISHED
-
-  videoData.duration = videoPhysicalFile.duration // duration was added by a previous middleware
-
-  const video = new VideoModel(videoData) as MVideoFullLight
-  video.VideoChannel = videoChannel
-  video.url = getLocalVideoActivityPubUrl(video) // We use the UUID, so set the URL after building the object
-
-  const videoFile = await buildNewFile(video, videoPhysicalFile)
 
   // Move physical file
   const destination = getVideoFilePath(video, videoFile)
-  await move(videoPhysicalFile.path, destination)
+
   // This is important in case if there is another attempt in the retry process
   videoPhysicalFile.filename = getVideoFilePath(video, videoFile)
   videoPhysicalFile.path = destination
