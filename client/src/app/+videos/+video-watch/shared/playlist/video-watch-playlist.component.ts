@@ -123,6 +123,7 @@ export class VideoWatchPlaylistComponent {
           }
 
           this.hooks.runAction('action:video-watch-playlist.elements.loaded', 'video-watch', {
+            playlist: this.playlist,
             playlistElements
           })
         })
