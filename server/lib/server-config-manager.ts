@@ -42,6 +42,13 @@ class ServerConfigManager {
     const defaultTheme = getThemeOrDefault(CONFIG.THEME.DEFAULT, DEFAULT_THEME_NAME)
 
     return {
+      client: {
+        videos: {
+          miniature: {
+            showAuthorDisplayName: CONFIG.CLIENT.VIDEOS.MINIATURE.SHOW_AUTHOR_DISPLAY_NAME
+          }
+        }
+      },
       instance: {
         name: CONFIG.INSTANCE.NAME,
         shortDescription: CONFIG.INSTANCE.SHORT_DESCRIPTION,
