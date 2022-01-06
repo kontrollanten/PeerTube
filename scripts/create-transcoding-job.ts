@@ -63,7 +63,11 @@ async function run () {
         type: 'new-resolution-to-hls',
         videoUUID: video.uuid,
         resolution,
+
+        // FIXME: check the file has audio and is not in portrait mode
         isPortraitMode: false,
+        hasAudio: true,
+
         copyCodecs: false,
         isNewVideo: false,
         isMaxQuality: maxResolution === resolution,
@@ -75,6 +79,10 @@ async function run () {
       dataInput.push({
         type: 'new-resolution-to-webtorrent',
         videoUUID: video.uuid,
+
+        // FIXME: check the file has audio
+        hasAudio: true,
+
         isNewVideo: false,
         resolution: parseInt(options.resolution)
       })

@@ -33,13 +33,22 @@ import { getHLSDirectory, getHLSRedundancyDirectory } from '@server/lib/paths'
 import { VideoPathManager } from '@server/lib/video-path-manager'
 import { getServerActor } from '@server/models/application/application'
 import { ModelCache } from '@server/models/model-cache'
-import { AttributesOnly, buildVideoEmbedPath, buildVideoWatchPath, pick } from '@shared/core-utils'
-import { VideoFile, VideoInclude } from '@shared/models'
-import { ResultList, UserRight, VideoPrivacy, VideoState } from '../../../shared'
-import { VideoObject } from '../../../shared/models/activitypub/objects'
-import { Video, VideoDetails, VideoRateType, VideoStorage } from '../../../shared/models/videos'
-import { ThumbnailType } from '../../../shared/models/videos/thumbnail.type'
-import { VideoStreamingPlaylistType } from '../../../shared/models/videos/video-streaming-playlist.type'
+import { buildVideoEmbedPath, buildVideoWatchPath, pick } from '@shared/core-utils'
+import {
+  ResultList,
+  ThumbnailType,
+  UserRight,
+  Video,
+  VideoDetails,
+  VideoFile,
+  VideoInclude,
+  VideoObject,
+  VideoPrivacy,
+  VideoRateType,
+  VideoState,
+  VideoStorage,
+  VideoStreamingPlaylistType
+} from '@shared/models'
 import { peertubeTruncate } from '../../helpers/core-utils'
 import { isActivityPubUrlValid } from '../../helpers/custom-validators/activitypub/misc'
 import { exists, isBooleanValid } from '../../helpers/custom-validators/misc'
@@ -51,7 +60,7 @@ import {
   isVideoStateValid,
   isVideoSupportValid
 } from '../../helpers/custom-validators/videos'
-import { getVideoFileResolution } from '../../helpers/ffprobe-utils'
+import { ffprobePromise, getAudioStream, getVideoFileResolution } from '../../helpers/ffprobe-utils'
 import { logger } from '../../helpers/logger'
 import { CONFIG } from '../../initializers/config'
 import { ACTIVITY_PUB, API_VERSION, CONSTRAINTS_FIELDS, LAZY_STATIC_PATHS, STATIC_PATHS, WEBSERVER } from '../../initializers/constants'
@@ -122,6 +131,7 @@ import { VideoShareModel } from './video-share'
 import { VideoStreamingPlaylistModel } from './video-streaming-playlist'
 import { VideoTagModel } from './video-tag'
 import { VideoViewModel } from './video-view'
+import { AttributesOnly } from '@shared/core-utils/common/types'
 
 export enum ScopeNames {
   FOR_API = 'FOR_API',
@@ -1668,12 +1678,20 @@ export class VideoModel extends Model<Partial<AttributesOnly<VideoModel>>> {
     return peertubeTruncate(this.description, { length: maxLength })
   }
 
-  getMaxQualityResolution () {
+  getMaxQualityFileInfo () {
     const file = this.getMaxQualityFile()
     const videoOrPlaylist = file.getVideoOrStreamingPlaylist()
 
-    return VideoPathManager.Instance.makeAvailableVideoFile(file.withVideoOrPlaylist(videoOrPlaylist), originalFilePath => {
-      return getVideoFileResolution(originalFilePath)
+    return VideoPathManager.Instance.makeAvailableVideoFile(file.withVideoOrPlaylist(videoOrPlaylist), async originalFilePath => {
+      const probe = await ffprobePromise(originalFilePath)
+
+      const { audioStream } = await getAudioStream(originalFilePath, probe)
+
+      return {
+        audioStream,
+
+        ...await getVideoFileResolution(originalFilePath, probe)
+      }
     })
   }
 
