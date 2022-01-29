@@ -2,13 +2,13 @@ import { registerTSPaths } from '../server/helpers/register-ts-paths'
 registerTSPaths()
 
 import { program } from 'commander'
-import { VideoModel } from '../server/models/video/video'
-import { initDatabaseModels } from '../server/initializers/database'
-import { JobQueue } from '../server/lib/job-queue'
-import { VideoState, VideoTranscodingPayload } from '@shared/models'
 import { isUUIDValid, toCompleteUUID } from '@server/helpers/custom-validators/misc'
 import { CONFIG } from '@server/initializers/config'
-import { addTranscodingJob } from '@server/lib/video'
+import { addHlsJob, addTranscodingJob } from '@server/lib/video'
+import { VideoState, VideoTranscodingPayload } from '@shared/models'
+import { initDatabaseModels } from '../server/initializers/database'
+import { JobQueue } from '../server/lib/job-queue'
+import { VideoModel } from '../server/models/video/video'
 
 program
   .option('-v, --video [videoUUID]', 'Video UUID')
@@ -51,13 +51,14 @@ async function run () {
   const dataInput: VideoTranscodingPayload[] = []
   const maxResolution = video.getMaxQualityFile().resolution
 
+  JobQueue.Instance.init(true)
+
   // Generate HLS files
   if (options.generateHls || CONFIG.TRANSCODING.WEBTORRENT.ENABLED === false) {
     const resolution = parseInt(options.resolution) || maxResolution
 
-    dataInput.push({
-      type: 'new-resolution-to-hls',
-      videoUUID: video.uuid,
+    await addHlsJob({
+      video,
       resolution,
 
       // FIXME: check the file has audio and is not in portrait mode
@@ -69,6 +70,7 @@ async function run () {
       isMaxQuality: resolution === maxResolution,
       autoDeleteWebTorrentIfNeeded: false
     })
+
   } else {
     if (options.resolution !== undefined) {
       dataInput.push({
@@ -94,8 +96,6 @@ async function run () {
       })
     }
   }
-
-  JobQueue.Instance.init(true)
 
   video.state = VideoState.TO_TRANSCODE
   await video.save()

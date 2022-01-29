@@ -130,7 +130,7 @@ async function addTranscodingJob (payload: VideoTranscodingPayload, options: Cre
   return JobQueue.Instance.createJobWithPromise({ type: 'video-transcoding', payload: payload }, options)
 }
 
-async function addHlsJob (user: MUserId, payload: {
+async function addHlsJob (payload: {
   video: MVideo
   resolution: number
   hasAudio: boolean
@@ -139,7 +139,7 @@ async function addHlsJob (user: MUserId, payload: {
   isMaxQuality: boolean
   isNewVideo?: boolean
   autoDeleteWebTorrentIfNeeded?: boolean
-}) {
+}, user?: MUserId) {
   const playlist = new VideoStreamingPlaylistModel() as MStreamingPlaylistFilesVideo
   playlist.Video = payload.video
   playlist.videoId = payload.video.id
@@ -155,7 +155,7 @@ async function addHlsJob (user: MUserId, payload: {
   }
 
   const jobOptions = {
-    priority: await getTranscodingJobPriority(user)
+    priority: user ? await getTranscodingJobPriority(user) : 1
   }
 
   const hlsTranscodingPayload: HLSTranscodingPayload = {
