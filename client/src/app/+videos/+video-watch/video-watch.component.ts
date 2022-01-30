@@ -323,6 +323,10 @@ export class VideoWatchComponent implements OnInit, OnDestroy {
     this.notifier.error(errorMessage)
   }
 
+  private handleVideojsError (err: any) {
+    this.player.addClass('vjs-error-display-enabled')
+  }
+
   private async onVideoFetched (
     video: VideoDetails,
     videoCaptions: VideoCaption[],
@@ -392,6 +396,10 @@ export class VideoWatchComponent implements OnInit, OnDestroy {
 
     this.zone.runOutsideAngular(async () => {
       this.player = await PeertubePlayerManager.initialize(playerMode, playerOptions, player => this.player = player)
+
+      this.player.on('error', () => {
+        this.zone.run(() => this.handleVideojsError(this.player.error()))
+      })
 
       this.player.on('customError', ({ err }: { err: any }) => {
         this.zone.run(() => this.handleGlobalError(err))
