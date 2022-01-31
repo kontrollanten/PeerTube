@@ -81,6 +81,8 @@ export class VideoWatchComponent implements OnInit, OnDestroy {
 
   private hotkeys: Hotkey[] = []
 
+  private videojsDecodeErrors = 0
+
   constructor (
     private elementRef: ElementRef,
     private route: ActivatedRoute,
@@ -240,19 +242,8 @@ export class VideoWatchComponent implements OnInit, OnDestroy {
     forkJoin([ videoObs, this.videoCaptionService.listCaptions(videoId) ])
       .subscribe({
         next: ([ video, captionsResult ]) => {
-          const queryParams = this.route.snapshot.queryParams
-
           const urlOptions = {
-            resume: queryParams.resume,
-
-            startTime: queryParams.start,
-            stopTime: queryParams.stop,
-
-            muted: queryParams.muted,
-            loop: queryParams.loop,
-            subtitle: queryParams.subtitle,
-
-            playerMode: queryParams.mode,
+            ...this.buildUrlOptions(),
             peertubeLink: false
           }
 
@@ -323,8 +314,46 @@ export class VideoWatchComponent implements OnInit, OnDestroy {
     this.notifier.error(errorMessage)
   }
 
+  private buildUrlOptions () {
+    const queryParams = this.route.snapshot.queryParams
+    return {
+      resume: queryParams.resume,
+
+      startTime: queryParams.start,
+      stopTime: queryParams.stop,
+
+      muted: queryParams.muted,
+      loop: queryParams.loop,
+      subtitle: queryParams.subtitle,
+
+      playerMode: queryParams.mode,
+      peertubeLink: false
+    }
+  }
+
   private handleVideojsError (err: any) {
-    this.player.addClass('vjs-error-display-enabled')
+    switch (err.code) {
+      case 3: // Decode error
+        if (this.videojsDecodeErrors === 0) {
+          this.notifier.error($localize`The video failed to play, will try to fast forward.`)
+        }
+
+        if (this.videojsDecodeErrors === 20) {
+          this.player.addClass('vjs-error-display-enabled')
+          return
+        }
+
+        this.videojsDecodeErrors++
+
+        this.buildPlayer({
+          ...this.buildUrlOptions(),
+          startTime: this.player.currentTime() + 2
+        })
+
+        break
+      default:
+        this.player.addClass('vjs-error-display-enabled')
+    }
   }
 
   private async onVideoFetched (
