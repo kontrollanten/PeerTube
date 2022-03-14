@@ -63,6 +63,9 @@ const CONFIG = {
     VIDEOS: {
       MINIATURE: {
         get PREFER_AUTHOR_DISPLAY_NAME () { return config.get<boolean>('client.videos.miniature.prefer_author_display_name') }
+      },
+      UPLOAD: {
+        get MAX_CHUNK_SIZE () { return config.get<number>('client.videos.upload.max_chunk_size') }
       }
     },
     MENU: {

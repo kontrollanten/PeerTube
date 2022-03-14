@@ -40,6 +40,9 @@ export interface ServerConfig {
       miniature: {
         preferAuthorDisplayName: boolean
       }
+      upload: {
+        maxChunkSize: number
+      }
     }
 
     menu: {

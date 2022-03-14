@@ -626,6 +626,9 @@ client:
     miniature:
       # By default PeerTube client displays author username
       prefer_author_display_name: false
+    upload:
+      # If not set it will be calculated based on network speed
+      max_chunk_size: 0
 
   menu:
     login:

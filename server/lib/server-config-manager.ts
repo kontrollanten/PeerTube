@@ -47,6 +47,9 @@ class ServerConfigManager {
         videos: {
           miniature: {
             preferAuthorDisplayName: CONFIG.CLIENT.VIDEOS.MINIATURE.PREFER_AUTHOR_DISPLAY_NAME
+          },
+          upload: {
+            maxChunkSize: CONFIG.CLIENT.VIDEOS.UPLOAD.MAX_CHUNK_SIZE
           }
         },
         menu: {
