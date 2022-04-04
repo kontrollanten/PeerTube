@@ -717,6 +717,29 @@ function getFFmpegVersion () {
   })
 }
 
+async function validateVideoFile (options: {
+  job?: Job
+  path: string
+}) {
+  logger.debug('Will validate video file.', { options, ...lTags() })
+
+  let stderr = ''
+  const command = ffmpeg(options.path)
+    .addOption('-loglevel', 'error')
+    .addOption('-f', 'null')
+    .output('/dev/null')
+    .on('stderr', (s) => {
+      stderr += s
+      return command.kill('SIGKILL')
+    })
+
+  try {
+    await runCommand({ command, job: options.job })
+  } catch (err) {
+    throw Error(`Video validation failed for file ${options.path}: ${stderr}`)
+  }
+}
+
 async function runCommand (options: {
   command: FfmpegCommand
   silent?: boolean // false
@@ -773,6 +796,7 @@ export {
   transcode,
   runCommand,
   getFFmpegVersion,
+  validateVideoFile,
 
   resetSupportedEncoders,
 

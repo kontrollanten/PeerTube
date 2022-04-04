@@ -6,7 +6,7 @@ import { createTorrentAndSetInfoHash } from '@server/helpers/webtorrent'
 import { MStreamingPlaylistFilesVideo, MVideoFile, MVideoFullLight } from '@server/types/models'
 import { VideoResolution, VideoStorage } from '../../../shared/models/videos'
 import { VideoStreamingPlaylistType } from '../../../shared/models/videos/video-streaming-playlist.type'
-import { transcode, TranscodeOptions, TranscodeOptionsType } from '../../helpers/ffmpeg-utils'
+import { transcode, TranscodeOptions, TranscodeOptionsType, validateVideoFile } from '../../helpers/ffmpeg-utils'
 import { canDoQuickTranscode, getDurationFromVideoFile, getMetadataFromFile, getVideoFileFPS } from '../../helpers/ffprobe-utils'
 import { CONFIG } from '../../initializers/config'
 import { P2P_MEDIA_LOADER_PEER_VERSION } from '../../initializers/constants'
@@ -59,7 +59,7 @@ function optimizeOriginalVideofile (video: MVideoFullLight, inputVideoFile: MVid
     }
 
     // Could be very long!
-    await transcode(transcodeOptions)
+    await transcodeAndValidate(transcodeOptions)
 
     // Important to do this before getVideoFilename() to take in account the new filename
     inputVideoFile.extname = newExtname
@@ -121,7 +121,7 @@ function transcodeNewWebTorrentResolution (video: MVideoFullLight, resolution: V
         job
       }
 
-    await transcode(transcodeOptions)
+    await transcodeAndValidate(transcodeOptions)
 
     return onWebTorrentVideoFileTranscoding(video, newVideoFile, videoTranscodedPath, videoOutputPath)
   })
@@ -158,7 +158,7 @@ function mergeAudioVideofile (video: MVideoFullLight, resolution: VideoResolutio
     }
 
     try {
-      await transcode(transcodeOptions)
+      await transcodeAndValidate(transcodeOptions)
 
       await remove(audioInputPath)
       await remove(tmpPreviewPath)
@@ -232,6 +232,14 @@ export {
 
 // ---------------------------------------------------------------------------
 
+async function transcodeAndValidate (transcodeOptions: TranscodeOptions) {
+  await transcode(transcodeOptions)
+  await validateVideoFile({
+    job: transcodeOptions.job,
+    path: transcodeOptions.outputPath
+  })
+}
+
 async function onWebTorrentVideoFileTranscoding (
   video: MVideoFullLight,
   videoFile: MVideoFile,
@@ -299,7 +307,7 @@ async function generateHlsPlaylistCommon (options: {
     job
   }
 
-  await transcode(transcodeOptions)
+  await transcodeAndValidate(transcodeOptions)
 
   // Create or update the playlist
   const playlist = await VideoStreamingPlaylistModel.loadOrGenerate(video)
