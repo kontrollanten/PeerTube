@@ -36,6 +36,11 @@ staticRouter.use(
   handleStaticError
 )
 
+staticRouter.use('/.well-known/',
+  cacheRoute(ROUTE_CACHE_LIFETIME.WELL_KNOWN),
+  express.static(CONFIG.STORAGE.WELL_KNOWN_DIR, { fallthrough: false })
+)
+
 // ---------------------------------------------------------------------------
 
 export {
