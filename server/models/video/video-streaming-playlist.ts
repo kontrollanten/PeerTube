@@ -245,7 +245,7 @@ export class VideoStreamingPlaylistModel extends Model<Partial<AttributesOnly<Vi
   }
 
   getMasterPlaylistUrl (video: MVideo) {
-    if (this.storage === VideoStorage.OBJECT_STORAGE) {
+    if (this.storage === VideoStorage.OBJECT_STORAGE && !video.isLive) {
       return getHLSPublicFileUrl(this.playlistUrl)
     }
 
@@ -255,7 +255,7 @@ export class VideoStreamingPlaylistModel extends Model<Partial<AttributesOnly<Vi
   }
 
   getSha256SegmentsUrl (video: MVideo) {
-    if (this.storage === VideoStorage.OBJECT_STORAGE) {
+    if (this.storage === VideoStorage.OBJECT_STORAGE && !video.isLive) {
       return getHLSPublicFileUrl(this.segmentsSha256Url)
     }
 
