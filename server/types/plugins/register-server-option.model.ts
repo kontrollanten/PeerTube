@@ -1,6 +1,7 @@
 import { Response, Router } from 'express'
 import { Logger } from 'winston'
 import { ActorModel } from '@server/models/actor/actor'
+import { PeerTubeSocket } from '@server/lib/peertube-socket'
 import {
   PluginPlaylistPrivacyManager,
   PluginSettingsManager,
@@ -86,6 +87,8 @@ export type PeerTubeHelpers = {
   server: {
     getServerActor: () => Promise<ActorModel>
   }
+
+  socket: PeerTubeSocket
 
   plugin: {
     // PeerTube >= 3.2
