@@ -1,5 +1,5 @@
 import ffmpeg from 'fluent-ffmpeg'
-import { Job } from 'bull'
+import { Job } from 'bullmq'
 import { lTags } from '@server/lib/object-storage/shared'
 import { logger } from '../logger'
 import { runCommand } from './ffmpeg-commons'
