@@ -1,8 +1,8 @@
 import cors from 'cors'
 import express from 'express'
-import { handleStaticError } from '@server/middlewares'
+import { cacheRoute, handleStaticError } from '@server/middlewares'
 import { CONFIG } from '../initializers/config'
-import { HLS_STREAMING_PLAYLIST_DIRECTORY, STATIC_MAX_AGE, STATIC_PATHS } from '../initializers/constants'
+import { HLS_STREAMING_PLAYLIST_DIRECTORY, ROUTE_CACHE_LIFETIME, STATIC_MAX_AGE, STATIC_PATHS } from '../initializers/constants'
 
 const staticRouter = express.Router()
 
