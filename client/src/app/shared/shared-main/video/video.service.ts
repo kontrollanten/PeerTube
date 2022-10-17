@@ -310,6 +310,15 @@ export class VideoService {
       .pipe(catchError(err => this.restExtractor.handleError(err)))
   }
 
+  rerunImport (videoIds: (number | string)[]) {
+    return from(videoIds)
+      .pipe(
+        concatMap(id => this.authHttp.post(VideoService.BASE_VIDEO_URL + '/' + id + '/import', {})),
+        toArray(),
+        catchError(err => this.restExtractor.handleError(err))
+      )
+  }
+
   runTranscoding (videoIds: (number | string)[], type: 'hls' | 'webtorrent') {
     const body: VideoTranscodingCreate = { transcodingType: type }
 

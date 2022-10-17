@@ -141,6 +141,50 @@ async function buildVideoFromImport ({ channelId, importData, importDataOverride
   return video
 }
 
+async function getYoutubeDLInfo (youtubeDL: YoutubeDLWrapper, targetUrl: string) {
+  // Get video infos
+  let youtubeDLInfo: YoutubeDLInfo
+  try {
+    youtubeDLInfo = await youtubeDL.getInfoForDownload()
+  } catch (err) {
+    throw YoutubeDlImportError.fromError(
+      err, YoutubeDlImportError.CODE.FETCH_ERROR, `Cannot fetch information from import for URL ${targetUrl}`
+    )
+  }
+
+  return youtubeDLInfo
+}
+
+async function buildYoutubeDLImportJob (options: {
+  channelSync?: MChannelSync
+  videoImport: MVideoImportFormattable
+  youtubeDLInfo?: YoutubeDLInfo
+}) {
+  let { channelSync, videoImport, youtubeDLInfo } = options
+
+  if (!youtubeDLInfo) {
+    const youtubeDL = new YoutubeDLWrapper(
+      videoImport.targetUrl,
+      ServerConfigManager.Instance.getEnabledResolutions('vod'),
+      CONFIG.TRANSCODING.ALWAYS_TRANSCODE_ORIGINAL_RESOLUTION
+    )
+    youtubeDLInfo = await getYoutubeDLInfo(youtubeDL, videoImport.targetUrl)
+  }
+
+  let fileExt = `.${youtubeDLInfo.ext}`
+  if (!isVideoFileExtnameValid(fileExt)) fileExt = '.mp4'
+
+  const payload: VideoImportPayload = {
+    type: 'youtube-dl' as 'youtube-dl',
+    videoImportId: videoImport.id,
+    fileExt,
+    // If part of a sync process, there is a parent job that will aggregate children results
+    preventException: !!channelSync
+  }
+
+  return { type: 'video-import' as 'video-import', payload }
+}
+
 async function buildYoutubeDLImport (options: {
   targetUrl: string
   channel: MChannelAccountDefault
@@ -151,22 +195,12 @@ async function buildYoutubeDLImport (options: {
   previewFilePath?: string
 }) {
   const { targetUrl, channel, channelSync, importDataOverride, thumbnailFilePath, previewFilePath, user } = options
-
   const youtubeDL = new YoutubeDLWrapper(
     targetUrl,
     ServerConfigManager.Instance.getEnabledResolutions('vod'),
     CONFIG.TRANSCODING.ALWAYS_TRANSCODE_ORIGINAL_RESOLUTION
   )
-
-  // Get video infos
-  let youtubeDLInfo: YoutubeDLInfo
-  try {
-    youtubeDLInfo = await youtubeDL.getInfoForDownload()
-  } catch (err) {
-    throw YoutubeDlImportError.fromError(
-      err, YoutubeDlImportError.CODE.FETCH_ERROR, `Cannot fetch information from import for URL ${targetUrl}`
-    )
-  }
+  const youtubeDLInfo = await getYoutubeDLInfo(youtubeDL, targetUrl)
 
   if (!await hasUnicastURLsOnly(youtubeDLInfo)) {
     throw new YoutubeDlImportError({
@@ -214,20 +248,15 @@ async function buildYoutubeDLImport (options: {
   // Get video subtitles
   await processYoutubeSubtitles(youtubeDL, targetUrl, video.id)
 
-  let fileExt = `.${youtubeDLInfo.ext}`
-  if (!isVideoFileExtnameValid(fileExt)) fileExt = '.mp4'
-
-  const payload: VideoImportPayload = {
-    type: 'youtube-dl' as 'youtube-dl',
-    videoImportId: videoImport.id,
-    fileExt,
-    // If part of a sync process, there is a parent job that will aggregate children results
-    preventException: !!channelSync
-  }
+  const job = await buildYoutubeDLImportJob({
+    channelSync,
+    youtubeDLInfo,
+    videoImport
+  })
 
   return {
     videoImport,
-    job: { type: 'video-import' as 'video-import', payload }
+    job
   }
 }
 
@@ -235,6 +264,7 @@ async function buildYoutubeDLImport (options: {
 
 export {
   buildYoutubeDLImport,
+  buildYoutubeDLImportJob,
   YoutubeDlImportError,
   insertFromImportIntoDB,
   buildVideoFromImport

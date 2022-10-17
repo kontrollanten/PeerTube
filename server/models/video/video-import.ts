@@ -134,15 +134,6 @@ export class VideoImportModel extends Model<Partial<AttributesOnly<VideoImportMo
   })
   VideoChannelSync: VideoChannelSyncModel
 
-  @AfterUpdate
-  static deleteVideoIfFailed (instance: VideoImportModel, options) {
-    if (instance.state === VideoImportState.FAILED) {
-      return afterCommitIfTransaction(options.transaction, () => instance.Video.destroy())
-    }
-
-    return undefined
-  }
-
   static loadAndPopulateVideo (id: number): Promise<MVideoImportDefault> {
     return VideoImportModel.findByPk(id)
   }
@@ -201,6 +192,10 @@ export class VideoImportModel extends Model<Partial<AttributesOnly<VideoImportMo
       VideoImportModel.unscoped().count(query),
       VideoImportModel.findAll<MVideoImportDefault>(query)
     ]).then(([ total, data ]) => ({ total, data }))
+  }
+
+  static async getByVideoId (videoId: number) {
+    return VideoImportModel.findOne({ where: { videoId } })
   }
 
   static async urlAlreadyImported (channelId: number, targetUrl: string): Promise<boolean> {

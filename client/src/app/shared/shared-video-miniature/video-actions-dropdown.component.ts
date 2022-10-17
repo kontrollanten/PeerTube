@@ -31,6 +31,7 @@ export type VideoActionsDisplayType = {
   transcoding?: boolean
   studio?: boolean
   stats?: boolean
+  import?: boolean
 }
 
 @Component({
@@ -202,6 +203,10 @@ export class VideoActionsDropdownComponent implements OnChanges {
     return this.video.canRunTranscoding(this.user)
   }
 
+  canRerunImport () {
+    return this.video.canRerunImport(this.user)
+  }
+
   /* Action handlers */
 
   async unblockVideo () {
@@ -302,6 +307,18 @@ export class VideoActionsDropdownComponent implements OnChanges {
       })
   }
 
+  rerunImport (video: Video) {
+    this.videoService.rerunImport([ video.id ])
+      .subscribe({
+        next: () => {
+          this.notifier.success($localize`Video import job created for ${video.name}.`)
+          this.transcodingCreated.emit()
+        },
+
+        error: (err: any) => this.notifier.error(err.message)
+      })
+  }
+
   onVideoBlocked () {
     this.videoBlocked.emit()
   }
@@ -397,6 +414,12 @@ export class VideoActionsDropdownComponent implements OnChanges {
           label: $localize`Run WebTorrent transcoding`,
           handler: ({ video }) => this.runTranscoding(video, 'webtorrent'),
           isDisplayed: () => this.displayOptions.transcoding && this.canRunTranscoding(),
+          iconName: 'cog'
+        },
+        {
+          label: $localize`Rerun import`,
+          handler: ({ video }) => this.rerunImport(video),
+          isDisplayed: () => this.displayOptions.import && this.canRerunImport(),
           iconName: 'cog'
         },
         {

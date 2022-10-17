@@ -2,6 +2,7 @@ import {
   FlowJob,
   FlowProducer,
   Job,
+  JobType as BullJobType,
   JobsOptions,
   Queue,
   QueueEvents,
@@ -487,6 +488,24 @@ class JobQueue {
   }
 
   // ---------------------------------------------------------------------------
+
+  private async getJobsWithPayload (queue: JobType, types: BullJobType[], payload: any) {
+    const jobs = await this.queues[queue].getJobs(types)
+
+    return jobs.filter(j => !!Object.keys(payload).filter(p => j.data[p] === payload[p]).length)
+  }
+
+  async hasActiveJobs (queue: JobType, payload: any) {
+    return !!(await this.getJobsWithPayload(queue, [ 'active' ], payload)).length
+  }
+
+  async removeJobsWithPayload (queue: JobType, types: BullJobType[], payload: any) {
+    const jobs = await this.getJobsWithPayload(queue, types, payload)
+
+    for (let i = 0; i < jobs.length; i++) {
+      await jobs[i].remove()
+    }
+  }
 
   async removeOldJobs () {
     for (const key of Object.keys(this.queues)) {

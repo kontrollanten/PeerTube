@@ -261,6 +261,12 @@ export class Video implements VideoServerModel {
       this.state.id !== VideoState.TO_TRANSCODE
   }
 
+  canRerunImport (user: AuthUser) {
+    return this.isLocal &&
+    user && user.hasRight(UserRight.MANAGE_VIDEO_IMPORTS) &&
+    this.state.id === VideoState.TO_IMPORT
+  }
+
   hasHLS () {
     return this.streamingPlaylists?.some(p => p.type === VideoStreamingPlaylistType.HLS)
   }

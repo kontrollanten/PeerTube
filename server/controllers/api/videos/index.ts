@@ -6,7 +6,7 @@ import { getServerActor } from '@server/models/application/application'
 import { guessAdditionalAttributesFromQuery } from '@server/models/video/formatter/video-format-utils'
 import { MVideoAccountLight } from '@server/types/models'
 import { HttpStatusCode } from '../../../../shared/models'
-import { auditLoggerFactory, getAuditIdFromRes, VideoAuditView } from '../../../helpers/audit-logger'
+import { auditLoggerFactory, getAuditIdFromRes, VideoAuditView, VideoImportAuditView } from '../../../helpers/audit-logger'
 import { buildNSFWFilter, getCountVideos } from '../../../helpers/express-utils'
 import { logger } from '../../../helpers/logger'
 import { getFormattedObjects } from '../../../helpers/utils'
@@ -28,6 +28,7 @@ import {
   videosGetValidator,
   videoSourceGetValidator,
   videosRemoveValidator,
+  videosRerunImportValidator,
   videosSortValidator
 } from '../../../middlewares'
 import { VideoModel } from '../../../models/video/video'
@@ -45,6 +46,7 @@ import { transcodingRouter } from './transcoding'
 import { updateRouter } from './update'
 import { uploadRouter } from './upload'
 import { viewRouter } from './view'
+import { buildYoutubeDLImportJob } from '@server/lib/video-import'
 
 const auditLogger = auditLoggerFactory('videos')
 const videosRouter = express.Router()
@@ -118,6 +120,12 @@ videosRouter.delete('/:id',
   authenticate,
   asyncMiddleware(videosRemoveValidator),
   asyncRetryTransactionMiddleware(removeVideo)
+)
+
+videosRouter.post('/:id/import',
+  authenticate,
+  asyncMiddleware(videosRerunImportValidator),
+  asyncRetryTransactionMiddleware(rerunVideoImport)
 )
 
 // ---------------------------------------------------------------------------
@@ -213,6 +221,45 @@ async function removeVideo (req: express.Request, res: express.Response) {
   return res.type('json')
             .status(HttpStatusCode.NO_CONTENT_204)
             .end()
+}
+
+async function rerunVideoImport (req: express.Request, res: express.Response) {
+  const videoImport = res.locals.videoImport
+  const isActive = await JobQueue.Instance.hasActiveJobs('video-import', { videoImportId: videoImport.id })
+
+  /**
+   * Move to validator?
+   */
+  if (isActive) {
+    return res.fail({
+      message: `Can't rerun import since it's already processing.`,
+      status: HttpStatusCode.UNPROCESSABLE_ENTITY_422
+    })
+  }
+
+  try {
+    await JobQueue.Instance.removeJobsWithPayload(
+      'video-import',
+      [ 'active', 'delayed', 'wait', 'waiting' ],
+      { videoImportId: videoImport.id }
+    )
+
+    const job = await buildYoutubeDLImportJob({
+      videoImport
+    })
+    await JobQueue.Instance.createJob(job)
+
+    auditLogger.create(getAuditIdFromRes(res), new VideoImportAuditView(videoImport.toFormattedJSON()))
+
+    return res.sendStatus(HttpStatusCode.CREATED_201)
+  } catch (err) {
+    logger.error('An error occurred while recreating import of the video %s. ', videoImport.targetUrl, { err })
+
+    return res.fail({
+      message: err.message,
+      status: HttpStatusCode.INTERNAL_SERVER_ERROR_500
+    })
+  }
 }
 
 // ---------------------------------------------------------------------------

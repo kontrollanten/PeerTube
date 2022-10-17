@@ -144,9 +144,22 @@ const videoImportCancelValidator = [
   }
 ]
 
+function checkUserCanManageImport (user: MUserAccountId, videoImport: MVideoImport, res: express.Response) {
+  if (user.hasRight(UserRight.MANAGE_VIDEO_IMPORTS) === false && videoImport.userId !== user.id) {
+    res.fail({
+      status: HttpStatusCode.FORBIDDEN_403,
+      message: 'Cannot manage video import of another user'
+    })
+    return false
+  }
+
+  return true
+}
+
 // ---------------------------------------------------------------------------
 
 export {
+  checkUserCanManageImport,
   videoImportAddValidator,
   videoImportCancelValidator,
   videoImportDeleteValidator,
@@ -178,18 +191,6 @@ async function isImportAccepted (req: express.Request, res: express.Response) {
     res.fail({
       status: HttpStatusCode.FORBIDDEN_403,
       message: acceptedResult.errorMessage || 'Refused to import video'
-    })
-    return false
-  }
-
-  return true
-}
-
-function checkUserCanManageImport (user: MUserAccountId, videoImport: MVideoImport, res: express.Response) {
-  if (user.hasRight(UserRight.MANAGE_VIDEO_IMPORTS) === false && videoImport.userId !== user.id) {
-    res.fail({
-      status: HttpStatusCode.FORBIDDEN_403,
-      message: 'Cannot manage video import of another user'
     })
     return false
   }

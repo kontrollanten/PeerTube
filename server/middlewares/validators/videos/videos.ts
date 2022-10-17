@@ -7,7 +7,7 @@ import { getServerActor } from '@server/models/application/application'
 import { ExpressPromiseHandler } from '@server/types/express-handler'
 import { MUserAccountId, MVideoFullLight } from '@server/types/models'
 import { arrayify, getAllPrivacies } from '@shared/core-utils'
-import { HttpStatusCode, ServerErrorCode, UserRight, VideoInclude } from '@shared/models'
+import { HttpStatusCode, ServerErrorCode, UserRight, VideoImportState, VideoInclude } from '@shared/models'
 import {
   exists,
   isBooleanValid,
@@ -54,8 +54,11 @@ import {
   doesVideoChannelOfAccountExist,
   doesVideoExist,
   doesVideoFileOfVideoExist,
+  doesVideoImportExist,
   isValidVideoIdParam
 } from '../shared'
+import { VideoImportModel } from '@server/models/video/video-import'
+import { checkUserCanManageImport } from '@server/middlewares'
 
 const videosAddLegacyValidator = getCommonVideoEditAttributes().concat([
   body('videofile')
@@ -325,6 +328,32 @@ const videosRemoveValidator = [
   }
 ]
 
+const videosRerunImportValidator = [
+  param('id')
+    .custom(isIdValid),
+
+  async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (areValidationErrors(req, res)) return
+
+    console.log('before import')
+    const videoImport = await VideoImportModel.getByVideoId(parseInt(req.params.id))
+    console.log('after import')
+    if (!await doesVideoImportExist(parseInt(videoImport.id), res)) return
+    console.log('after import2')
+    if (!checkUserCanManageImport(res.locals.oauth.token.user, res.locals.videoImport, res)) return
+    console.log('after import3')
+
+    if (res.locals.videoImport.state === VideoImportState.SUCCESS) {
+      return res.fail({
+        status: HttpStatusCode.UNPROCESSABLE_ENTITY_422,
+        message: 'Cannot rerun a successful video import.'
+      })
+    }
+
+    return next()
+  }
+]
+
 const videosOverviewValidator = [
   query('page')
     .optional()
@@ -521,6 +550,7 @@ export {
   checkVideoFollowConstraints,
   videosCustomGetValidator,
   videosRemoveValidator,
+  videosRerunImportValidator,
 
   getCommonVideoEditAttributes,
 
