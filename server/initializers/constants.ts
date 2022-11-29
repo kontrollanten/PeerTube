@@ -244,7 +244,7 @@ const VIDEO_IMPORT_TIMEOUT = Math.floor(JOB_TTL['video-import'] * 0.9)
 
 const SCHEDULER_INTERVALS_MS = {
   ACTOR_FOLLOW_SCORES: 60000 * 60, // 1 hour
-  REMOVE_OLD_JOBS: 60000 * 60, // 1 hour
+  REMOVE_OLD_JOBS: 60000 * 60 / 4, // 15 minutes
   UPDATE_VIDEOS: 60000, // 1 minute
   YOUTUBE_DL_UPDATE: 60000 * 60 * 24, // 1 day
   GEO_IP_UPDATE: 60000 * 60 * 24, // 1 day

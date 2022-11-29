@@ -491,7 +491,7 @@ class JobQueue {
   async removeOldJobs () {
     for (const key of Object.keys(this.queues)) {
       const queue: Queue = this.queues[key]
-      await queue.clean(JOB_COMPLETED_LIFETIME, 100, 'completed')
+      await queue.clean(JOB_COMPLETED_LIFETIME, 50000, 'completed')
     }
   }
 
