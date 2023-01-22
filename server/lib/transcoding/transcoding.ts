@@ -27,6 +27,7 @@ import { updatePlaylistAfterFileChange } from '../hls'
 import { generateHLSVideoFilename, generateWebTorrentVideoFilename, getHlsResolutionPlaylistFilename } from '../paths'
 import { VideoPathManager } from '../video-path-manager'
 import { VideoTranscodingProfilesManager } from './default-transcoding-profiles'
+import { validateVideoFile } from '@server/helpers/ffmpeg/ffmpeg-validate'
 
 /**
  *
@@ -79,7 +80,11 @@ async function optimizeOriginalVideofile (options: {
         job
       }
 
-      // Could be very long!
+      /**
+       * Could be very long!
+       * Don't validate the file here, since ffmpeg may solve some issues upon transcoding
+       * (which isn't done upon quick-transcode)
+       */
       await transcodeVOD(transcodeOptions)
 
       // Important to do this before getVideoFilename() to take in account the new filename
@@ -160,7 +165,7 @@ async function transcodeNewWebTorrentResolution (options: {
           job
         }
 
-      await transcodeVOD(transcodeOptions)
+      await transcodeVODAndValidate(transcodeOptions)
 
       return onWebTorrentVideoFileTranscoding(video, newVideoFile, videoTranscodedPath, newVideoFile)
     })
@@ -217,7 +222,7 @@ async function mergeAudioVideofile (options: {
       }
 
       try {
-        await transcodeVOD(transcodeOptions)
+        await transcodeVODAndValidate(transcodeOptions)
 
         await remove(audioInputPath)
         await remove(tmpPreviewPath)
@@ -289,6 +294,14 @@ export {
 }
 
 // ---------------------------------------------------------------------------
+
+async function transcodeVODAndValidate (transcodeOptions: TranscodeVODOptions) {
+  await transcodeVOD(transcodeOptions)
+  await validateVideoFile({
+    job: transcodeOptions.job,
+    path: transcodeOptions.outputPath
+  })
+}
 
 async function onWebTorrentVideoFileTranscoding (
   video: MVideoFullLight,
@@ -375,7 +388,7 @@ async function generateHlsPlaylistCommon (options: {
     job
   }
 
-  await transcodeVOD(transcodeOptions)
+  await transcodeVODAndValidate(transcodeOptions)
 
   // Create or update the playlist
   const playlist = await retryTransactionWrapper(() => {
