@@ -48,7 +48,11 @@ export async function optimizeOriginalVideofile (options: {
       const resolution = buildOriginalFileResolution(inputVideoFile.resolution)
       const fps = computeOutputFPS({ inputFPS: inputVideoFile.fps, resolution })
 
-      // Could be very long!
+      /**
+       * Could be very long!
+       * Don't validate the file here, since ffmpeg may solve some issues upon transcoding
+       * (which isn't done upon quick-transcode)
+       */
       await buildFFmpegVOD(job).transcode({
         type: transcodeType,
 
@@ -125,7 +129,7 @@ export async function transcodeNewWebVideoResolution (options: {
         fps
       }
 
-      await buildFFmpegVOD(job).transcode(transcodeOptions)
+      await buildFFmpegVOD(job).transcodeVODAndValidate(transcodeOptions)
 
       return onWebVideoFileTranscoding({ video, videoFile: newVideoFile, videoOutputPath })
     })
@@ -178,7 +182,7 @@ export async function mergeAudioVideofile (options: {
       }
 
       try {
-        await buildFFmpegVOD(job).transcode(transcodeOptions)
+        await buildFFmpegVOD(job).transcodeVODAndValidate(transcodeOptions)
 
         await remove(audioInputPath)
         await remove(tmpPreviewPath)

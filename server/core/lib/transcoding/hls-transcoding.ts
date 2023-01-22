@@ -169,7 +169,7 @@ async function generateHlsPlaylistCommon (options: {
     }
   }
 
-  await buildFFmpegVOD(job).transcode(transcodeOptions)
+  await buildFFmpegVOD(job).transcodeVODAndValidate(transcodeOptions)
 
   const newVideoFile = new VideoFileModel({
     resolution,

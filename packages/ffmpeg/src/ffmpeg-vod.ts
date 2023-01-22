@@ -73,11 +73,20 @@ export type TranscodeVODOptions =
 
 export class FFmpegVOD {
   private readonly commandWrapper: FFmpegCommandWrapper
+  private readonly options: FFmpegCommandWrapperOptions
 
   private ended = false
 
   constructor (options: FFmpegCommandWrapperOptions) {
+    this.options = options
     this.commandWrapper = new FFmpegCommandWrapper(options)
+  }
+
+  async transcodeVODAndValidate (transcodeOptions: TranscodeVODOptions) {
+    await this.transcode(transcodeOptions)
+    await this.validateVideoFile({
+      path: transcodeOptions.outputPath
+    })
   }
 
   async transcode (options: TranscodeVODOptions) {
@@ -117,6 +126,32 @@ export class FFmpegVOD {
 
   isEnded () {
     return this.ended
+  }
+
+  private async validateVideoFile (options: {
+    path: string
+  }) {
+    const commandWrapper = new FFmpegCommandWrapper(this.options)
+    commandWrapper.debugLog('Will validate video file.', { options })
+
+    let stderr = ''
+
+    const command = commandWrapper.buildCommand(options.path)
+      .addOption('-max_muxing_queue_size', '1024')
+      .addOption('-loglevel', 'error')
+      .addOption('-f', 'null')
+      .output('/dev/null')
+
+    command
+      .on('stderr', (s) => {
+        stderr += s
+        return command.kill('SIGKILL')
+      })
+    try {
+      await commandWrapper.runCommand()
+    } catch (err) {
+      throw Error(`Video validation failed for file ${options.path}: ${stderr}`)
+    }
   }
 
   private async buildWebVideoCommand (options: TranscodeVODOptions) {
