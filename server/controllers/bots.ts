@@ -1,5 +1,5 @@
+import { logger } from '@server/helpers/logger'
 import { getServerActor } from '@server/models/application/application'
-import { logger } from '@uploadx/core'
 import express from 'express'
 import { truncate } from 'lodash'
 import { SitemapStream, streamToPromise, ErrorLevel } from 'sitemap'
