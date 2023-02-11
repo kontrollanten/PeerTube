@@ -98,6 +98,7 @@
     "@peertube/feed": "^5.0.1",
     "@peertube/http-signature": "^1.7.0",
     "@uploadx/core": "^6.0.0",
+    "@uploadx/s3": "^6.1.1",
     "async-lru": "^1.1.1",
     "async-mutex": "^0.4.0",
     "bcrypt": "5.1.0",

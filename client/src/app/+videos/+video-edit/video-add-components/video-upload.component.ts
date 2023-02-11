@@ -12,6 +12,7 @@ import { logger } from '@root-helpers/logger'
 import { isIOS } from '@root-helpers/web-browser'
 import { HttpStatusCode, VideoCreateResult } from '@shared/models'
 import { UploaderXFormData } from './uploaderx-form-data'
+import { UploaderXS3 } from './uploaderx-s3'
 import { VideoSend } from './video-send'
 import { Subscription } from 'rxjs'
 
@@ -410,7 +411,7 @@ export class VideoUploadComponent extends VideoSend implements OnInit, OnDestroy
 
       token: this.authService.getAccessToken(),
 
-      uploaderClass: UploaderXFormData,
+      uploaderClass: true ? UploaderXS3 : UploaderXFormData,
 
       retryConfig: {
         maxAttempts: 30, // maximum attempts for 503 codes, otherwise set to 6, see below

@@ -49,15 +49,6 @@ function getClient () {
   return s3Client
 }
 
-// ---------------------------------------------------------------------------
-
-export {
-  getEndpointParsed,
-  getClient
-}
-
-// ---------------------------------------------------------------------------
-
 let endpoint: string
 function getEndpoint () {
   if (endpoint) return endpoint
@@ -69,3 +60,13 @@ function getEndpoint () {
 
   return endpoint
 }
+
+// ---------------------------------------------------------------------------
+
+export {
+  getEndpoint,
+  getEndpointParsed,
+  getClient
+}
+
+// ---------------------------------------------------------------------------
