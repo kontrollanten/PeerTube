@@ -156,7 +156,7 @@ describe('Test external auth plugins', function () {
       expect(body.username).to.equal('cyan')
       expect(body.account.displayName).to.equal('cyan')
       expect(body.email).to.equal('cyan@example.com')
-      expect(body.role.id).to.equal(UserRole.USER)
+      expect(body.role).to.equal(UserRole.USER)
       expect(body.adminFlags).to.equal(UserAdminFlag.NONE)
       expect(body.videoQuota).to.equal(5242880)
       expect(body.videoQuotaDaily).to.equal(-1)
@@ -181,7 +181,7 @@ describe('Test external auth plugins', function () {
       expect(body.username).to.equal('kefka')
       expect(body.account.displayName).to.equal('Kefka Palazzo')
       expect(body.email).to.equal('kefka@example.com')
-      expect(body.role.id).to.equal(UserRole.ADMINISTRATOR)
+      expect(body.role).to.equal(UserRole.ADMINISTRATOR)
       expect(body.adminFlags).to.equal(UserAdminFlag.BYPASS_VIDEO_AUTO_BLACKLIST)
       expect(body.videoQuota).to.equal(42000)
       expect(body.videoQuotaDaily).to.equal(42100)
@@ -246,7 +246,7 @@ describe('Test external auth plugins', function () {
     expect(body.username).to.equal('cyan')
     expect(body.account.displayName).to.equal('Cyan Garamonde')
     expect(body.account.description).to.equal('Retainer to the king of Doma')
-    expect(body.role.id).to.equal(UserRole.USER)
+    expect(body.role).to.equal(UserRole.USER)
   })
 
   it('Should login Kefka and update the profile', async function () {

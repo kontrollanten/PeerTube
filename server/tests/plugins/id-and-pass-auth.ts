@@ -49,7 +49,7 @@ describe('Test id and pass auth plugins', function () {
 
     expect(body.username).to.equal('spyro')
     expect(body.account.displayName).to.equal('Spyro the Dragon')
-    expect(body.role.id).to.equal(UserRole.USER)
+    expect(body.role).to.equal(UserRole.USER)
   })
 
   it('Should login Crash, create the user and use the token', async function () {
@@ -64,7 +64,7 @@ describe('Test id and pass auth plugins', function () {
 
       expect(body.username).to.equal('crash')
       expect(body.account.displayName).to.equal('Crash Bandicoot')
-      expect(body.role.id).to.equal(UserRole.MODERATOR)
+      expect(body.role).to.equal(UserRole.MODERATOR)
     }
   })
 
@@ -80,7 +80,7 @@ describe('Test id and pass auth plugins', function () {
 
       expect(body.username).to.equal('laguna')
       expect(body.account.displayName).to.equal('Laguna Loire')
-      expect(body.role.id).to.equal(UserRole.USER)
+      expect(body.role).to.equal(UserRole.USER)
 
       lagunaId = body.id
     }
@@ -132,7 +132,7 @@ describe('Test id and pass auth plugins', function () {
     expect(body.username).to.equal('crash')
     expect(body.account.displayName).to.equal('Beautiful Crash')
     expect(body.account.description).to.equal('Mutant eastern barred bandicoot')
-    expect(body.role.id).to.equal(UserRole.MODERATOR)
+    expect(body.role).to.equal(UserRole.MODERATOR)
   })
 
   it('Should login Laguna and update the profile', async function () {

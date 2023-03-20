@@ -257,7 +257,7 @@ describe('Test registrations', function () {
       expect(me.videoQuota).to.equal(5 * 1024 * 1024)
       expect(me.videoChannels[0].name).to.equal('user2_channel')
       expect(me.videoChannels[0].displayName).to.equal('Main user2 channel')
-      expect(me.role.id).to.equal(UserRole.USER)
+      expect(me.role).to.equal(UserRole.USER)
       expect(me.email).to.equal('user2@example.com')
     })
 
@@ -269,7 +269,7 @@ describe('Test registrations', function () {
       expect(me.videoQuota).to.equal(5 * 1024 * 1024)
       expect(me.videoChannels[0].name).to.equal('super_user3_channel')
       expect(me.videoChannels[0].displayName).to.equal('my user 3 channel')
-      expect(me.role.id).to.equal(UserRole.USER)
+      expect(me.role).to.equal(UserRole.USER)
       expect(me.email).to.equal('user3@example.com')
     })
 
