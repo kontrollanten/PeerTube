@@ -125,10 +125,7 @@ export class UserAdminService {
     }
 
     return Object.assign(user, {
-      role: {
-        id: user.role.id,
-        label: roleLabels[user.role.id]
-      },
+      roleLabel: roleLabels[user.role],
       videoQuota,
       videoQuotaUsed,
       rawVideoQuota: user.videoQuota,
