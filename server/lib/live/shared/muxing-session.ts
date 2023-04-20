@@ -2,6 +2,7 @@ import { mapSeries } from 'bluebird'
 import { FSWatcher, watch } from 'chokidar'
 import { EventEmitter } from 'events'
 import { appendFile, ensureDir, readFile, stat } from 'fs-extra'
+import { Parser as M3u8Parser } from 'm3u8-parser'
 import PQueue from 'p-queue'
 import { basename, join } from 'path'
 import { computeOutputFPS } from '@server/helpers/ffmpeg'
@@ -84,8 +85,11 @@ class MuxingSession extends EventEmitter {
 
   private streamingPlaylist: MStreamingPlaylistVideo
   private liveSegmentShaStore: LiveSegmentShaStore
+  private liveSegmentsInStorage: string[]
 
   private filesWatcher: FSWatcher
+  private m3u8Watcher: FSWatcher
+  private m3u8Parser: M3u8Parser
 
   private masterPlaylistCreated = false
   private liveReady = false
@@ -149,6 +153,7 @@ class MuxingSession extends EventEmitter {
 
     this.createLiveShaStore()
     this.createFiles()
+    this.liveSegmentsInStorage = []
 
     await this.prepareDirectories()
 
@@ -206,6 +211,86 @@ class MuxingSession extends EventEmitter {
     })
   }
 
+  private async parseM3U8Segments (srcDirectory: string, m3u8Path: string) {
+    const m3u8Data = await readFile(m3u8Path)
+    this.m3u8Parser = new M3u8Parser()
+    this.m3u8Parser.push(m3u8Data)
+    this.m3u8Parser.end()
+    const m3u8Parsed = this.m3u8Parser.manifest
+    const segmentPaths = m3u8Parsed.segments.map(segment => srcDirectory + '/' + segment.uri)
+    return segmentPaths
+  }
+
+  private getUnavailableM3U8Segments (m3u8SegmentPaths: string[]) {
+    const storedSegments = new Set(this.liveSegmentsInStorage)
+    const unavailableM3U8Segments = new Set(m3u8SegmentPaths)
+    for (const segment of m3u8SegmentPaths) {
+      if (storedSegments.has(segment)) {
+        unavailableM3U8Segments.delete(segment)
+      }
+    }
+    return Array.from(unavailableM3U8Segments)
+  }
+
+  private async waitForUnavailableM3U8Segments (m3u8Path: string, m3u8SegmentPaths: string[], maxRetries = 30) {
+    const retrySleepMs = 100
+    let ackSleepMs = 0
+    while (maxRetries) {
+      const m3u8SegmentsUnavailable = this.getUnavailableM3U8Segments(m3u8SegmentPaths)
+      logger.debug('Unavailable video segments from %s', m3u8Path, { unavailableSegments: m3u8SegmentsUnavailable })
+      const segmentCount = m3u8SegmentsUnavailable.length
+      if (segmentCount) {
+        ackSleepMs += retrySleepMs
+        maxRetries -= 1
+        if (maxRetries > 0) {
+          logger.info(
+            'Video segment(s) from %s are unavailable, wait %s ms (segments: %s, ackumulated wait: %s ms, retries left: %s)...',
+            m3u8Path, retrySleepMs, segmentCount, ackSleepMs, maxRetries
+          )
+          await new Promise(resolve => setTimeout(resolve, retrySleepMs))
+        } else {
+          logger.warn(
+            'Max retries exceeded waiting for %s video segment(s) in storage, giving up (segments: %s, wait time: %s ms, retries left: 0)',
+            m3u8Path, segmentCount, ackSleepMs, { unavailableSegments: m3u8SegmentsUnavailable }
+          )
+          break
+        }
+      } else {
+        logger.info('All %s video segments from %s available in storage (total wait: %s ms)', m3u8SegmentPaths.length, m3u8Path, ackSleepMs)
+        break
+      }
+    }
+  }
+
+  private watchM3U8File () {
+    this.m3u8Watcher = watch(this.outDirectory + '/*.m3u8')
+
+    const sendQueues = new Map<string, PQueue>()
+
+    const onChangeOrAdd = async (m3u8Path: string) => {
+      const m3u8SegmentPaths = await this.parseM3U8Segments(this.outDirectory, m3u8Path)
+      logger.debug('Parsed %s video segments from %s', m3u8SegmentPaths.length, m3u8Path, { m3u8Segments: m3u8SegmentPaths })
+
+      if (this.streamingPlaylist.storage !== VideoStorage.OBJECT_STORAGE) return
+
+      try {
+        if (!sendQueues.has(m3u8Path)) {
+          sendQueues.set(m3u8Path, new PQueue({ concurrency: 1 }))
+        }
+
+        const queue = sendQueues.get(m3u8Path)
+        await queue.add(async () => {
+          await this.waitForUnavailableM3U8Segments(m3u8Path, m3u8SegmentPaths)
+          return storeHLSFileFromPath(this.streamingPlaylist, m3u8Path)
+        })
+      } catch (err) {
+        logger.error('Cannot store in object storage m3u8 file %s', m3u8Path, { err, ...this.lTags() })
+      }
+    }
+
+    this.m3u8Watcher.on('change', onChangeOrAdd)
+  }
+
   private watchTSFiles () {
     const startStreamDateTime = new Date().getTime()
 
@@ -252,6 +337,14 @@ class MuxingSession extends EventEmitter {
       if (this.streamingPlaylist.storage === VideoStorage.OBJECT_STORAGE) {
         try {
           await removeHLSFileObjectStorageByPath(this.streamingPlaylist, segmentPath)
+          if (this.liveSegmentsInStorage.includes(segmentPath)) {
+            const removedSegmentPath = this.liveSegmentsInStorage.splice(this.liveSegmentsInStorage.indexOf(segmentPath), 1)
+            logger.debug('Removed segment %s from storage', removedSegmentPath, { liveSegmentsInStorage: this.liveSegmentsInStorage })
+          } else {
+            logger.warn('Removed segment %s is missing in video segments storage', segmentPath, {
+              liveSegmentsInStorage: this.liveSegmentsInStorage
+            })
+          }
         } catch (err) {
           logger.error('Cannot remove segment %s from object storage', segmentPath, { err, ...this.lTags() })
         }
@@ -339,6 +432,8 @@ class MuxingSession extends EventEmitter {
         await storeHLSFileFromPath(this.streamingPlaylist, segmentPath)
 
         await this.processM3U8ToObjectStorage(segmentPath)
+        this.liveSegmentsInStorage.push(segmentPath)
+        logger.debug('Added segment %s to storage', segmentPath, { liveSegmentsInStorage: this.liveSegmentsInStorage })
       } catch (err) {
         logger.error('Cannot store TS segment %s in object storage', segmentPath, { err, ...this.lTags() })
       }
