@@ -348,6 +348,7 @@ const newCustomConfig: CustomConfig = {
   },
   live: {
     enabled: true,
+    useObjectStorage: true,
     allowReplay: true,
     latencySetting: {
       enabled: false
