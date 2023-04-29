@@ -241,6 +241,7 @@ function checkSearchConfig () {
 
 function checkLiveConfig () {
   if (CONFIG.LIVE.ENABLED === true) {
+
     if (CONFIG.LIVE.ALLOW_REPLAY === true && CONFIG.TRANSCODING.ENABLED === false) {
       throw new Error('Live allow replay cannot be enabled if transcoding is not enabled.')
     }

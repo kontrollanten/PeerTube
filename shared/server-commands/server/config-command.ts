@@ -96,16 +96,18 @@ export class ConfigCommand extends AbstractCommand {
   // ---------------------------------------------------------------------------
 
   enableLive (options: {
+    useObjectStorage?: boolean
     allowReplay?: boolean
     transcoding?: boolean
     resolutions?: 'min' | 'max' // Default max
   } = {}) {
-    const { allowReplay, transcoding, resolutions = 'max' } = options
+    const { useObjectStorage = true, allowReplay, transcoding, resolutions = 'max' } = options
 
     return this.updateExistingSubConfig({
       newConfig: {
         live: {
           enabled: true,
+          useObjectStorage,
           allowReplay: allowReplay ?? true,
           transcoding: {
             enabled: transcoding ?? true,
@@ -384,6 +386,7 @@ export class ConfigCommand extends AbstractCommand {
       },
       live: {
         enabled: true,
+        useObjectStorage: true,
         allowReplay: false,
         latencySetting: {
           enabled: false
