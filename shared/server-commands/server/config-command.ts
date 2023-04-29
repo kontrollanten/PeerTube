@@ -428,7 +428,7 @@ export class ConfigCommand extends AbstractCommand {
       },
       live: {
         enabled: true,
-        useObjectStorage: false,
+        useObjectStorage: true,
         allowReplay: false,
         latencySetting: {
           enabled: false
