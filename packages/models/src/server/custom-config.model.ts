@@ -146,6 +146,8 @@ export interface CustomConfig {
   live: {
     enabled: boolean
 
+    useObjectStorage: boolean
+
     allowReplay: boolean
 
     latencySetting: {
