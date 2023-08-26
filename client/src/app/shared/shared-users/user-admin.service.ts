@@ -6,7 +6,7 @@ import { Injectable } from '@angular/core'
 import { RestExtractor, RestPagination, RestService, ServerService, UserService } from '@app/core'
 import { getBytes } from '@root-helpers/bytes'
 import { arrayify, peertubeTranslate } from '@shared/core-utils'
-import { ResultList, User as UserServerModel, UserCreate, UserUpdate } from '@shared/models'
+import { ResultList, User as UserServerModel, UserCreate, UserUpdate, UserRole } from '@shared/models'
 
 @Injectable()
 export class UserAdminService {
@@ -125,10 +125,16 @@ export class UserAdminService {
       videoQuotaUsedDaily = getBytes(user.videoQuotaUsedDaily || 0, 0) + ''
     }
 
+    const roleLabels: { [ id in UserRole ]: string } = {
+      [UserRole.USER]: $localize`User`,
+      [UserRole.ADMINISTRATOR]: $localize`Administrator`,
+      [UserRole.MODERATOR]: $localize`Moderator`
+    }
+
     return Object.assign(user, {
       role: {
-        id: user.role.id,
-        label: peertubeTranslate(user.role.label, translations)
+        id: user.role,
+        label: roleLabels[user.role]
       },
       videoQuota,
       videoQuotaUsed,

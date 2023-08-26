@@ -29,10 +29,8 @@ export interface User {
   videosHistoryEnabled: boolean
   videoLanguages: string[]
 
-  role: {
-    id: UserRole
-    label: string
-  }
+  role: UserRole
+  roleLabel: string
 
   videoQuota: number
   videoQuotaDaily: number

@@ -52,7 +52,7 @@ export abstract class UserEdit extends FormReactive implements OnInit {
 
     this.serverService.getServerLocale()
       .subscribe(translations => {
-        if (authUser.role.id === UserRole.ADMINISTRATOR) {
+        if (authUser.role === UserRole.ADMINISTRATOR) {
           this.roles = Object.entries(USER_ROLE_LABELS)
                 .map(([ key, value ]) => ({ value: key.toString(), label: peertubeTranslate(value, translations) }))
           return
