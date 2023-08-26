@@ -900,10 +900,8 @@ export class UserModel extends Model<Partial<AttributesOnly<UserModel>>> {
       autoPlayNextVideoPlaylist: this.autoPlayNextVideoPlaylist,
       videoLanguages: this.videoLanguages,
 
-      role: {
-        id: this.role,
-        label: USER_ROLE_LABELS[this.role]
-      },
+      role: this.role,
+      roleLabel: USER_ROLE_LABELS[this.role],
 
       videoQuota: this.videoQuota,
       videoQuotaDaily: this.videoQuotaDaily,
