@@ -1,4 +1,5 @@
-import { Component, Input } from '@angular/core'
+import { Component, Input, AfterViewInit } from '@angular/core';
+import { HooksService, PluginService } from '@app/core';
 import { PluginElementPlaceholder } from '@peertube/peertube-models'
 
 @Component({
@@ -7,8 +8,20 @@ import { PluginElementPlaceholder } from '@peertube/peertube-models'
   styleUrls: [ './plugin-placeholder.component.scss' ]
 })
 
-export class PluginPlaceholderComponent {
+export class PluginPlaceholderComponent implements AfterViewInit {
   @Input() pluginId: PluginElementPlaceholder
+  @Input() context: any
+
+  constructor(
+    private hooks: HooksService
+  ) {}
+
+  ngAfterViewInit() {
+    this.hooks.runAction('action:html-placeholder.loaded', 'common', {
+      context: this.context,
+      placeholderId: this.pluginId
+    })
+  }
 
   getId () {
     return 'plugin-placeholder-' + this.pluginId

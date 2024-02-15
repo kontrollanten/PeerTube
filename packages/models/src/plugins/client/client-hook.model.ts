@@ -182,7 +182,9 @@ export const clientActionHookObject = {
   // ###########################
 
   // Fired when the embed loaded the player
-  'action:embed.player.loaded': true
+  'action:embed.player.loaded': true,
+
+  'action:html-placeholder.loaded': true
 }
 
 export type ClientActionHookName = keyof typeof clientActionHookObject

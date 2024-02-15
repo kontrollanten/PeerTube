@@ -7,6 +7,8 @@
 </a>
 
 <ng-template #aContent>
+  <my-plugin-placeholder *ngIf="video" pluginId="video-thumbnail" [context]="{ video }"></my-plugin-placeholder>
+
   <img alt="" [attr.aria-label]="video.name" [attr.src]="getImageUrl()" [ngClass]="{ 'blur-filter': nsfw }" />
 
   <div *ngIf="displayWatchLaterPlaylist" class="video-thumbnail-actions-overlay">

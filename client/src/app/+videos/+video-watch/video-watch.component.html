@@ -16,7 +16,7 @@
       (noVideoFound)="onPlaylistNoVideoFound()" (videoFound)="onPlaylistVideoFound($event)"
     ></my-video-watch-playlist>
 
-    <my-plugin-placeholder pluginId="player-next"></my-plugin-placeholder>
+    <my-plugin-placeholder *ngIf="video" pluginId="player-next" [context]="{ video }"></my-plugin-placeholder>
   </div>
 
   <my-video-alert [video]="video" [user]="user" [noPlaylistVideoFound]="noPlaylistVideoFound"></my-video-alert>
