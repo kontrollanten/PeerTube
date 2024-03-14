@@ -1,7 +1,7 @@
 import { SortMeta, SharedModule } from 'primeng/api'
 import { Component, OnInit } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
-import { AuthService, ConfirmService, MarkdownService, Notifier, RestPagination, RestTable } from '@app/core'
+import { AuthService, ConfirmService, HooksService, MarkdownService, Notifier, RestPagination, RestTable } from '@app/core'
 import { FeedFormat, UserRight } from '@peertube/peertube-models'
 import { formatICU } from '@app/helpers'
 import { AutoColspanDirective } from '../../../shared/shared-main/angular/auto-colspan.directive'
@@ -101,11 +101,16 @@ export class VideoCommentListComponent extends RestTable <VideoCommentAdmin> imp
     private confirmService: ConfirmService,
     private videoCommentService: VideoCommentService,
     private markdownRenderer: MarkdownService,
-    private bulkService: BulkService
+    private bulkService: BulkService,
+    private hooks: HooksService
   ) {
     super()
+  }
 
-    this.videoCommentActions = [
+  async ngOnInit () {
+    this.initialize()
+
+    const videoCommentActions: DropdownAction<VideoCommentAdmin>[][] = [
       [
         {
           label: $localize`Delete this comment`,
@@ -121,10 +126,7 @@ export class VideoCommentListComponent extends RestTable <VideoCommentAdmin> imp
         }
       ]
     ]
-  }
-
-  ngOnInit () {
-    this.initialize()
+    this.videoCommentActions = await this.hooks.wrapObject(videoCommentActions, 'admin-comments', 'filter:comment-list.actions.create.result')
 
     this.bulkActions = [
       {
