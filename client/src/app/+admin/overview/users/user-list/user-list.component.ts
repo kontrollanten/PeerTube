@@ -2,7 +2,7 @@ import { DatePipe, NgClass, NgIf } from '@angular/common'
 import { Component, OnInit, ViewChild } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
-import { AuthService, ConfirmService, LocalStorageService, Notifier, RestPagination, RestTable } from '@app/core'
+import { AuthService, ConfirmService, HooksService, LocalStorageService, Notifier, RestPagination, RestTable } from '@app/core'
 import { formatICU, getAPIHost } from '@app/helpers'
 import { Actor } from '@app/shared/shared-main/account/actor.model'
 import { BlocklistService } from '@app/shared/shared-moderation/blocklist.service'
@@ -112,7 +112,8 @@ export class UserListComponent extends RestTable <User> implements OnInit {
     private auth: AuthService,
     private blocklist: BlocklistService,
     private userAdminService: UserAdminService,
-    private peertubeLocalStorage: LocalStorageService
+    private peertubeLocalStorage: LocalStorageService,
+    private hooks: HooksService
   ) {
     super()
   }
@@ -131,10 +132,10 @@ export class UserListComponent extends RestTable <User> implements OnInit {
     this.saveSelectedColumns()
   }
 
-  ngOnInit () {
+  async ngOnInit () {
     this.initialize()
 
-    this.bulkActions = [
+    const bulkActions: DropdownAction<User[]>[][] = [
       [
         {
           label: $localize`Delete`,
@@ -164,6 +165,8 @@ export class UserListComponent extends RestTable <User> implements OnInit {
         }
       ]
     ]
+
+    this.bulkActions = await this.hooks.wrapObject(bulkActions, 'admin-users', 'filter:user-list.bulk-actions.create.result')
 
     this.columns = [
       { id: 'username', label: $localize`Username` },
