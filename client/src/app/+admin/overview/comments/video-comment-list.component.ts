@@ -128,7 +128,7 @@ export class VideoCommentListComponent extends RestTable <VideoCommentAdmin> imp
     ]
     this.videoCommentActions = await this.hooks.wrapObject(videoCommentActions, 'admin-comments', 'filter:comment-list.actions.create.result')
 
-    this.bulkActions = [
+    const bulkActions: DropdownAction<VideoCommentAdmin[]>[] = [
       {
         label: $localize`Delete`,
         handler: comments => this.removeComments(comments),
@@ -136,6 +136,7 @@ export class VideoCommentListComponent extends RestTable <VideoCommentAdmin> imp
         iconName: 'delete'
       }
     ]
+    this.bulkActions = await this.hooks.wrapObject(bulkActions, 'admin-comments', 'filter:comment-list.bulk-actions.create.result')
   }
 
   getIdentifier () {

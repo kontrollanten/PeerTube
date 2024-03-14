@@ -105,6 +105,9 @@ export const clientFilterHookObject = {
   // Filter actions in comment list
   'filter:comment-list.actions.create.result': true,
 
+  // Filter bulk actions in comment list
+  'filter:comment-list.bulk-actions.create.result': true,
+
   // Filter user moderation actions
   'filter:user-moderation.actions.create.result': true
 }
