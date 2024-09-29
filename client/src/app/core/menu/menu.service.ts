@@ -31,6 +31,10 @@ export class MenuService {
   constructor (
     private screenService: ScreenService
   ) {
+    if (typeof window ===  'undefined') {
+      this.setMenuDisplay(false)
+      return
+    }
     // Do not display menu on small or touch screens
     if (this.screenService.isInSmallView() || this.screenService.isInTouchScreen()) {
       this.setMenuDisplay(false)
@@ -118,7 +122,7 @@ export class MenuService {
   buildCommonLinks (config: HTMLServerConfig): MenuSection {
     let links: MenuLink[] = []
 
-    if (config.homepage.enabled) {
+    if (config?.homepage.enabled) {
       links.push({
         icon: 'home' as 'home',
         label: $localize`Home`,
@@ -156,7 +160,7 @@ export class MenuService {
 
     return {
       key: 'on-instance',
-      title: $localize`ON ${config.instance.name}`,
+      title: $localize`ON ${config?.instance.name}`,
       links
     }
   }

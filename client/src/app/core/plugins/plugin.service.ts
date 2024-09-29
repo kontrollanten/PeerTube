@@ -68,6 +68,9 @@ export class PluginService implements ClientHook {
     private restExtractor: RestExtractor,
     @Inject(LOCALE_ID) private localeId: string
   ) {
+    if (typeof window === 'undefined') {
+      return
+    }
     this.loadTranslations()
 
     this.pluginsManager = new PluginsManager({
@@ -79,6 +82,7 @@ export class PluginService implements ClientHook {
   }
 
   initializePlugins () {
+    if (typeof window === 'undefined') return
     this.pluginsManager.loadPluginsList(this.server.getHTMLConfig())
 
     this.pluginsManager.ensurePluginsAreLoaded('common')
@@ -89,12 +93,15 @@ export class PluginService implements ClientHook {
   }
 
   runHook <T> (hookName: ClientHookName, result?: T, params?: any): Promise<T> {
+    if (typeof window === 'undefined') return Promise.resolve(result)
+
     return this.zone.runOutsideAngular(() => {
       return this.pluginsManager.runHook(hookName, result, params)
     })
   }
 
   ensurePluginsAreLoaded (scope: PluginClientScope) {
+    if (typeof window === 'undefined') return Promise.resolve()
     return this.pluginsManager.ensurePluginsAreLoaded(scope)
   }
 

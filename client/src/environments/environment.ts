@@ -8,9 +8,11 @@
 // to change the order in the final bundle.
 import 'core-js/features/reflect'
 
+const apiUrl = 'http://localhost:9000'
+
 export const environment = {
   production: true,
   hmr: false,
-  apiUrl: '',
+  apiUrl,
   originServerUrl: ''
 }

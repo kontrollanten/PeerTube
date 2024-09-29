@@ -309,6 +309,14 @@
   dependencies:
     tslib "^2.3.0"
 
+"@angular/platform-server@^18.2.6":
+  version "18.2.6"
+  resolved "https://registry.yarnpkg.com/@angular/platform-server/-/platform-server-18.2.6.tgz#3fbf2e8872bcb5b639610b123f519a1e00214f47"
+  integrity sha512-X5qmLBIf5Y8V8SVtzw5/MFpFTEGv/mP/RMXI4kK0ohrjiiR91vIEUPWnNA6nRf6U0EsIxQ8nC62FtAUItflP+Q==
+  dependencies:
+    tslib "^2.3.0"
+    xhr2 "^0.2.0"
+
 "@angular/router@^18.0.4":
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/@angular/router/-/router-18.2.0.tgz#e61c96be0c44590d865eab66209c54b6700d13d1"
@@ -321,6 +329,14 @@
   resolved "https://registry.yarnpkg.com/@angular/service-worker/-/service-worker-18.2.0.tgz#638e2408d7411b1f7c5b857bacd92b9cf204e493"
   integrity sha512-ngcALrgqMuAeIo5dgou6eBzdtgLvmVg5zwmZuTyrnNPZENEaKTj7u5pm9++gl62797sUWlMbL+fa/BOhntGs5A==
   dependencies:
+    tslib "^2.3.0"
+
+"@angular/ssr@^18.2.6":
+  version "18.2.6"
+  resolved "https://registry.yarnpkg.com/@angular/ssr/-/ssr-18.2.6.tgz#642d00de284cd71598c07a45408482b2b77e7776"
+  integrity sha512-xqRrWPXZmWeBh1Jx+7yCuBKjutyyGaq0epcDJOVyYH0h6a0+q5TcMhvhJVRE6BW6J+Bbvxr8+5y4Inr2EGDJsA==
+  dependencies:
+    critters "0.0.24"
     tslib "^2.3.0"
 
 "@arr/every@^1.0.0":
@@ -11739,6 +11755,11 @@ ws@~8.17.1:
   version "8.17.1"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.17.1.tgz#9293da530bb548febc95371d90f9c878727d919b"
   integrity sha512-6XQFvXTkbfUOZOKKILFG1PDK2NDQs4azKQl26T0YS5CxqWLgXajbPZ+h4gZekJyRqFU8pvnbAbbs/3TgRPy+GQ==
+
+xhr2@^0.2.0:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/xhr2/-/xhr2-0.2.1.tgz#4e73adc4f9cfec9cbd2157f73efdce3a5f108a93"
+  integrity sha512-sID0rrVCqkVNUn8t6xuv9+6FViXjUVXq8H5rWOH2rz9fDNQEd4g0EA2XlcEdJXRz5BMEn4O1pJFdT+z4YHhoWw==
 
 xmlhttprequest-ssl@~2.0.0:
   version "2.0.0"

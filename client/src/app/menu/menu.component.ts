@@ -1,5 +1,5 @@
-import { CommonModule, ViewportScroller } from '@angular/common'
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core'
+import { CommonModule, isPlatformServer, ViewportScroller } from '@angular/common'
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core'
 import { Router, RouterLink, RouterLinkActive } from '@angular/router'
 import {
   AuthService,
@@ -90,6 +90,7 @@ export class MenuComponent implements OnInit, OnDestroy {
   private authSub: Subscription
 
   constructor (
+    @Inject(PLATFORM_ID) private platformId: Object,
     private viewportScroller: ViewportScroller,
     private authService: AuthService,
     private userService: UserService,
@@ -254,7 +255,7 @@ export class MenuComponent implements OnInit, OnDestroy {
   }
 
   onDropdownOpenChange (opened: boolean) {
-    if (this.screenService.isInMobileView()) return
+    if (isPlatformServer(this.platformId) || this.screenService.isInMobileView()) return
 
     // Close dropdown when window scroll to avoid dropdown quick jump for re-position
     const onWindowScroll = () => {

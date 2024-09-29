@@ -105,8 +105,8 @@ export class UserLocalStorageService {
 
     const htmlConfig = this.server.getHTMLConfig()
 
-    const defaultNSFWPolicy = htmlConfig.instance.defaultNSFWPolicy
-    const defaultP2PEnabled = htmlConfig.defaults.p2p.webapp.enabled
+    const defaultNSFWPolicy = htmlConfig?.instance.defaultNSFWPolicy
+    const defaultP2PEnabled = htmlConfig?.defaults.p2p.webapp.enabled
 
     return {
       nsfwPolicy: this.localStorageService.getItem<NSFWPolicyType>(UserLocalStorageKeys.NSFW_POLICY) || defaultNSFWPolicy,

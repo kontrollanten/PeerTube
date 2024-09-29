@@ -126,5 +126,8 @@
     "vite-plugin-node-polyfills": "^0.22.0",
     "zone.js": "~0.14.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@angular/platform-server": "^18.2.6",
+    "@angular/ssr": "^18.2.6"
+  }
 }

@@ -7,7 +7,7 @@ function getAbsoluteAPIUrl () {
 
   if (!absoluteAPIUrl) {
     // The API is on the same domain
-    absoluteAPIUrl = window.location.origin
+    absoluteAPIUrl = 'http://localhost:9000'
   }
 
   return absoluteAPIUrl
@@ -21,7 +21,7 @@ function getAbsoluteEmbedUrl () {
   let absoluteEmbedUrl = environment.originServerUrl
   if (!absoluteEmbedUrl) {
     // The Embed is on the same domain
-    absoluteEmbedUrl = window.location.origin
+    absoluteEmbedUrl = 'http://localhost:9000'
   }
 
   return absoluteEmbedUrl

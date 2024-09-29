@@ -5,7 +5,7 @@ import { logger } from '@root-helpers/logger'
 import { environment } from '../../environments/environment'
 
 function isOnDevLocale () {
-  return environment.production === false && window.location.search === '?lang=fr'
+  return environment.production === false && typeof window !== 'undefined' && window.location.search === '?lang=fr'
 }
 
 function getDevLocale () {

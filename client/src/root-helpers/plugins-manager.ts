@@ -227,6 +227,8 @@ class PluginsManager {
   private loadPlugin (pluginInfo: PluginInfo) {
     const { plugin, clientScript } = pluginInfo
 
+    if (typeof window === 'undefined') return
+
     const registerHook = (options: RegisterClientHookOptions) => {
       if (clientHookObject[options.target] !== true) {
         logger.error(`Unknown hook ${options.target} of plugin ${plugin.name}. Skipping.`)

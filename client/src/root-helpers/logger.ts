@@ -84,7 +84,7 @@ class Logger {
     return {
       message: this.buildMessageServerLogPayload(message),
       userAgent: navigator.userAgent,
-      url: window.location.href,
+      url: window?.location.href,
       level,
       stackTrace: this.buildStackServerLogPayload(message, meta),
       meta: this.buildMetaServerLogPayload(meta)
@@ -138,8 +138,8 @@ class Logger {
   }
 }
 
-const logger = window.logger || new Logger()
-window.logger = logger
+const logger = new Logger()
+// window.logger = logger
 
 export {
   logger

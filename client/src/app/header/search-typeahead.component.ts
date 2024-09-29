@@ -104,7 +104,9 @@ export class SearchTypeaheadComponent implements OnInit, AfterViewChecked, OnDes
   }
 
   computeTypeahead () {
-    const searchIndexConfig = this.serverConfig.search.searchIndex
+    const searchIndexConfig = this.serverConfig?.search.searchIndex
+
+    if (!searchIndexConfig) return
 
     if (!this.activeSearch) {
       if (searchIndexConfig.enabled && (searchIndexConfig.isDefaultSearch || searchIndexConfig.disableLocalSearch)) {
@@ -181,6 +183,8 @@ export class SearchTypeaheadComponent implements OnInit, AfterViewChecked, OnDes
   }
 
   isOnSearch () {
+    if (typeof window === 'undefined') return false
+
     return window.location.pathname === '/search'
   }
 

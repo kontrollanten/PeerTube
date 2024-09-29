@@ -177,11 +177,13 @@ export class VideosListComponent implements OnInit, OnChanges, OnDestroy {
       [GroupDate.OLDER]: $localize`Older videos`
     }
 
-    this.resizeSub = fromEvent(window, 'resize')
+    if (typeof window !== 'undefined') {
+      this.resizeSub = fromEvent(window, 'resize')
       .pipe(debounceTime(500))
       .subscribe(() => this.calcPageSizes())
 
-    this.calcPageSizes()
+      this.calcPageSizes()
+    }
 
     this.userService.getAnonymousOrLoggedUser()
       .subscribe(user => {
@@ -430,14 +432,16 @@ export class VideosListComponent implements OnInit, OnChanges, OnDestroy {
       ? this.baseRouteBuilderFunction(this.filters)
       : []
 
-    const pathname = window.location.pathname
+    if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname
 
-    const baseRouteChanged = baseRoute.length !== 0 &&
-                             pathname !== '/' && // Exclude special '/' case, we'll be redirected without component change
-                             baseRoute.length !== 0 && pathname !== baseRoute.join('/')
+      const baseRouteChanged = baseRoute.length !== 0 &&
+                              pathname !== '/' && // Exclude special '/' case, we'll be redirected without component change
+                              baseRoute.length !== 0 && pathname !== baseRoute.join('/')
 
-    if (baseRouteChanged || Object.keys(baseQuery).length !== 0 || customizedByUser) {
-      this.peertubeRouter.silentNavigate(baseRoute, queryParams)
+      if (baseRouteChanged || Object.keys(baseQuery).length !== 0 || customizedByUser) {
+        this.peertubeRouter.silentNavigate(baseRoute, queryParams)
+      }
     }
 
     this.filtersChanged.emit(this.filters)

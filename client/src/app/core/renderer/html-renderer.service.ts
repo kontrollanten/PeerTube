@@ -13,6 +13,9 @@ export class HtmlRendererService {
   private enhancedDomPurify: DOMPurifyI
 
   constructor (private linkifier: LinkifierService) {
+    if (typeof window === 'undefined') {
+      return
+    }
     this.simpleDomPurify = DOMPurify()
     this.enhancedDomPurify = DOMPurify()
 

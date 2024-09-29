@@ -52,14 +52,16 @@
     { "path": "../packages/typescript-utils" }
   ],
   "files": [
-    "src/polyfills.ts"
+    "src/polyfills.ts",
+    "server.ts"
   ],
   "include": [
     "src/polyfills.ts",
     "src/main*.ts",
     "src/**/*.d.ts",
     "src/app/**/*.ts",
-    "src/shims/*.ts"
+    "src/shims/*.ts",
+    "src/main.server.ts"
   ],
   "angularCompilerOptions": {
     "strictInjectionParameters": true,

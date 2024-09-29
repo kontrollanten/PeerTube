@@ -54,6 +54,7 @@ export class VideosListCommonPageComponent implements OnInit, OnDestroy, Disable
     private meta: MetaService,
     private redirectService: RedirectService
   ) {
+    console.log('videos list common page')
   }
 
   ngOnInit () {

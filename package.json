@@ -211,6 +211,7 @@
     "@types/lodash-es": "^4.17.8",
     "@types/magnet-uri": "^5.1.1",
     "@types/maildev": "^0.0.7",
+    "@types/markdown-it-emoji": "^3.0.1",
     "@types/memoizee": "^0.4.2",
     "@types/mocha": "^10.0.0",
     "@types/morgan": "^1.7.32",

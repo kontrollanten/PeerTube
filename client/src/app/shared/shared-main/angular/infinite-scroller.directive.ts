@@ -1,7 +1,8 @@
 import { fromEvent, Observable, Subscription } from 'rxjs'
 import { distinctUntilChanged, filter, map, share, startWith, throttleTime } from 'rxjs/operators'
-import { AfterViewChecked, Directive, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core'
+import { AfterViewChecked, Directive, ElementRef, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, PLATFORM_ID } from '@angular/core'
 import { PeerTubeRouterService, RouterSetting } from '@app/core'
+import { isPlatformBrowser } from '@angular/common'
 
 @Directive({
   selector: '[myInfiniteScroller]',
@@ -26,6 +27,7 @@ export class InfiniteScrollerDirective implements OnInit, OnDestroy, AfterViewCh
   private checkScroll = false
 
   constructor (
+    @Inject(PLATFORM_ID) private platformId: Object,
     private peertubeRouter: PeerTubeRouterService,
     private el: ElementRef
   ) {
@@ -33,7 +35,7 @@ export class InfiniteScrollerDirective implements OnInit, OnDestroy, AfterViewCh
   }
 
   ngAfterViewChecked () {
-    if (this.checkScroll) {
+    if (isPlatformBrowser(this.platformId) && this.checkScroll) {
       this.checkScroll = false
 
       // Wait HTML update
@@ -44,7 +46,9 @@ export class InfiniteScrollerDirective implements OnInit, OnDestroy, AfterViewCh
   }
 
   ngOnInit () {
-    this.initialize()
+    if (isPlatformBrowser(this.platformId)) {
+      this.initialize()
+    }
   }
 
   ngOnDestroy () {

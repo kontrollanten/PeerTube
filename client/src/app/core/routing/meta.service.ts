@@ -23,7 +23,7 @@ export class MetaService {
     let title = ''
     if (subTitle) title += `${subTitle} - `
 
-    title += this.config.instance.name
+    title += this.config?.instance.name
 
     this.titleService.setTitle(title)
   }

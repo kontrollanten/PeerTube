@@ -1,6 +1,6 @@
 import { APP_BASE_HREF, registerLocaleData } from '@angular/common'
 import { provideHttpClient } from '@angular/common/http'
-import { APP_INITIALIZER, ApplicationRef, enableProdMode, importProvidersFrom, provideZoneChangeDetection } from '@angular/core'
+import { APP_INITIALIZER, ApplicationRef, enableProdMode, importProvidersFrom, LOCALE_ID, provideZoneChangeDetection } from '@angular/core'
 import { BrowserModule, bootstrapApplication, enableDebugTools } from '@angular/platform-browser'
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { RouteReuseStrategy, provideRouter, withInMemoryScrolling, withPreloading } from '@angular/router'
@@ -30,17 +30,11 @@ import { logger } from './root-helpers'
 
 registerLocaleData(localeOc, 'oc')
 
-export function loadConfigFactory (server: ServerService, pluginService: PluginService, redirectService: RedirectService) {
-  const initializeServices = () => {
-    redirectService.init()
-    pluginService.initializePlugins()
-  }
+export function loadConfigFactory (server: ServerService) {
 
   return () => {
-    const result = server.loadHTMLConfig()
-    if (result) return result.pipe(tap(() => initializeServices()))
-
-    initializeServices()
+    console.log('getConfig')
+    return server.getConfig()
   }
 }
 
@@ -50,7 +44,7 @@ if (environment.production) {
 
 logger.registerServerSending(environment.apiUrl)
 
-const bootstrap = () => bootstrapApplication(AppComponent, {
+export const bootstrap = () => bootstrapApplication(AppComponent, {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
 
@@ -72,6 +66,9 @@ const bootstrap = () => bootstrapApplication(AppComponent, {
     getCoreProviders(),
     getMainProviders(),
     getFormProviders(),
+    {
+      provide: LOCALE_ID, useValue: 'en-US'
+    },
 
     PreloadSelectedModulesList,
     ...MenuGuards.guards,

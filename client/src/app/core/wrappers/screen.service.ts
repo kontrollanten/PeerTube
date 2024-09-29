@@ -9,6 +9,7 @@ export class ScreenService {
   private cacheForMs = 500
 
   constructor () {
+    if (typeof window === 'undefined') return
     this.refreshWindowInnerWidth()
   }
 
@@ -30,6 +31,8 @@ export class ScreenService {
   }
 
   isInTouchScreen () {
+    if (typeof window === 'undefined') return false
+
     return !!('ontouchstart' in window || (navigator as any).msMaxTouchPoints)
   }
 
@@ -114,7 +117,7 @@ export class ScreenService {
   private refreshWindowInnerWidth () {
     this.lastFunctionCallTime = new Date().getTime()
 
-    this.windowInnerWidth = window.innerWidth
+    this.windowInnerWidth = typeof window === 'undefined' ? 800 : window.innerWidth
   }
 
   private cacheWindowInnerWidthExpired () {

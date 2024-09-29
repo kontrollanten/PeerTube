@@ -107,18 +107,20 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   get instanceName () {
-    return this.serverConfig.instance.name
+    return this.serverConfig?.instance.name
   }
 
   ngOnInit () {
-    document.getElementById('incompatible-browser').className += ' browser-ok'
+    if (typeof document !== 'undefined') {
+      document.getElementById('incompatible-browser').className += ' browser-ok'
+    }
 
     this.loadUser()
 
     this.serverConfig = this.serverService.getHTMLConfig()
 
     this.hooks.runAction('action:application.init', 'common')
-    this.themeService.initialize()
+    if (typeof document !== 'undefined') this.themeService.initialize()
 
     this.authService.loadClientCredentials()
 
@@ -128,27 +130,27 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     this.initRouteEvents()
-    this.scrollService.enableScrollRestoration()
+    if (typeof document !== 'undefined') this.scrollService.enableScrollRestoration()
 
-    this.injectJS()
-    this.injectCSS()
-    this.injectBroadcastMessage()
+    if (typeof document !== 'undefined') this.injectJS()
+    if (typeof document !== 'undefined') this.injectCSS()
+    if (typeof document !== 'undefined') this.injectBroadcastMessage()
 
     this.serverService.configReloaded
       .subscribe(config => {
         this.serverConfig = config
 
-        this.injectBroadcastMessage()
-        this.injectCSS()
+        if (typeof document !== 'undefined') this.injectBroadcastMessage()
+        if (typeof document !== 'undefined') this.injectCSS()
 
         // Don't reinject JS since it could conflict with existing one
       })
 
-    this.initHotkeys()
+    if (typeof document !== 'undefined') this.initHotkeys()
 
-    this.location.onPopState(() => this.modalService.dismissAll(POP_STATE_MODAL_DISMISS))
+    if (typeof document !== 'undefined') this.location.onPopState(() => this.modalService.dismissAll(POP_STATE_MODAL_DISMISS))
 
-    this.openModalsIfNeeded()
+    if (typeof document !== 'undefined') this.openModalsIfNeeded()
 
     this.document.documentElement.lang = getShortLocale(this.localeId)
     this.document.documentElement.dir = getLocaleDirection(this.localeId)

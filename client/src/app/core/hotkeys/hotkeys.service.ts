@@ -24,6 +24,10 @@ export class HotkeysService {
   }
 
   private initCheatSheet () {
+    if (typeof window === 'undefined') {
+      return
+    }
+
     debugLogger('Init hotkeys')
 
     this.add([
