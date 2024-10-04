@@ -33,7 +33,7 @@ export class ErrorPageComponent implements OnInit {
   }
 
   get pathname () {
-    return window.location.pathname
+    return typeof window !== 'undefined' ? window.location.pathname : ''
   }
 
   getMascotName () {

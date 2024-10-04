@@ -31,7 +31,7 @@ export class MenuService {
   constructor (
     private screenService: ScreenService
   ) {
-    if (typeof window ===  'undefined') {
+    if (typeof window === 'undefined') {
       this.setMenuDisplay(false)
       return
     }

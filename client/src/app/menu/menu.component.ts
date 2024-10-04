@@ -90,7 +90,7 @@ export class MenuComponent implements OnInit, OnDestroy {
   private authSub: Subscription
 
   constructor (
-    @Inject(PLATFORM_ID) private platformId: Object,
+    @Inject(PLATFORM_ID) private platformId: object,
     private viewportScroller: ViewportScroller,
     private authService: AuthService,
     private userService: UserService,

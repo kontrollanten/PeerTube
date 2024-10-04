@@ -1,7 +1,7 @@
 import { APP_BASE_HREF, registerLocaleData } from '@angular/common'
 import { provideHttpClient } from '@angular/common/http'
 import { APP_INITIALIZER, ApplicationRef, enableProdMode, importProvidersFrom, LOCALE_ID, provideZoneChangeDetection } from '@angular/core'
-import { BrowserModule, bootstrapApplication, enableDebugTools } from '@angular/platform-browser'
+import { BrowserModule, bootstrapApplication, enableDebugTools, provideClientHydration } from '@angular/platform-browser'
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { RouteReuseStrategy, provideRouter, withInMemoryScrolling, withPreloading } from '@angular/router'
 import { ServiceWorkerModule } from '@angular/service-worker'
@@ -11,7 +11,6 @@ import { NgbModalModule } from '@ng-bootstrap/ng-bootstrap'
 import { LoadingBarModule } from '@ngx-loading-bar/core'
 import { LoadingBarHttpClientModule } from '@ngx-loading-bar/http-client'
 import { ToastModule } from 'primeng/toast'
-import { tap } from 'rxjs/operators'
 import { AppComponent } from './app/app.component'
 import routes from './app/app.routes'
 import {
@@ -97,7 +96,8 @@ export const bootstrap = () => bootstrapApplication(AppComponent, {
       provide: APP_INITIALIZER,
       useFactory: () => polyfillICU,
       multi: true
-    }
+    },
+    provideClientHydration()
   ]
 })
   .then(bootstrapModule => {

@@ -7,7 +7,7 @@ function getAbsoluteAPIUrl () {
 
   if (!absoluteAPIUrl) {
     // The API is on the same domain
-    absoluteAPIUrl = 'http://localhost:9000'
+    absoluteAPIUrl = window.location.origin
   }
 
   return absoluteAPIUrl

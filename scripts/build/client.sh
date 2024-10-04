@@ -84,7 +84,7 @@ else
     fi
 
     node --max_old_space_size=8192 node_modules/.bin/ng build --localize=false --output-path "dist/$defaultLanguage/" \
-                                                              --configuration production --stats-json $additionalParams
+                                                              --configuration production --stats-json $additionalParams --server server.ts
 fi
 
 cd ../ && npm run build:embed && cd client/

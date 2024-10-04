@@ -14,7 +14,7 @@ const markdownItForSafeHtml = new MarkdownItClass('default', { linkify: true, br
 
 const markdownItForPlainText = new MarkdownItClass('default', { linkify: false, breaks: true, html: false })
   .use(markdownItEmoji)
-  .use(plainTextPlugin)
+  .use(plainTextPlugin) as MarkdownItClass & { plainText: string }
 
 const toSafeHtml = (text: string) => {
   if (!text) return ''
